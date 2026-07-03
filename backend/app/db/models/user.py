@@ -1,0 +1,38 @@
+import uuid
+from sqlalchemy import String, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import List
+
+from app.db.session import Base
+from app.db.models.mixins import UUIDMixin, TimestampMixin
+
+class User(Base, UUIDMixin, TimestampMixin):
+    """
+    Represents all authenticated actors in the system.
+    Authenticates via GIKI email.
+    """
+    __tablename__ = "users"
+
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    full_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    hostel: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    role_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("roles.id"), nullable=False, index=True)
+
+    # Relationships
+    role: Mapped["Role"] = relationship("Role", back_populates="users")
+    
+    # A user can author many complaints
+    authored_complaints: Mapped[List["Complaint"]] = relationship(
+        "Complaint", foreign_keys="Complaint.created_by", back_populates="author"
+    )
+    
+    # A supervisor can review many complaints
+    supervised_complaints: Mapped[List["Complaint"]] = relationship(
+        "Complaint", foreign_keys="Complaint.supervisor_id", back_populates="supervisor"
+    )
+    
+    notifications: Mapped[List["Notification"]] = relationship("Notification", back_populates="user")
+    audit_actions: Mapped[List["AuditLog"]] = relationship("AuditLog", back_populates="actor")
+
+    def __repr__(self) -> str:
+        return f"<User(id={self.id}, email='{self.email}')>"
