@@ -1,0 +1,20 @@
+# ===========================================================
+# Fixora – Backend Development Dependencies
+# Install AFTER requirements.txt:
+#   pip install -r requirements-dev.txt
+# ===========================================================
+
+# ── Install production deps first ───────────────────────────
+-r requirements.txt
+
+# ── Testing ─────────────────────────────────────────────────
+pytest==8.2.2
+pytest-asyncio==0.23.7             # Async test support (needed for async routes/repos)
+httpx==0.27.0                      # Async HTTP client used by FastAPI TestClient
+
+# ── Code Quality ────────────────────────────────────────────
+ruff==0.5.0                        # Linter + formatter (replaces flake8, black, isort)
+mypy==1.10.1                       # Static type checker
+
+# ── Type Stubs ──────────────────────────────────────────────
+types-python-jose==3.3.4.20240106  # mypy stubs for python-jose

@@ -95,6 +95,7 @@ Represents all authenticated actors in the system and links them to a role.
 | id | UUID | PK | Primary key identifier for the user. |
 | email | VARCHAR(255) | UNIQUE, NOT NULL | Official GIKI email address used for login. |
 | full_name | VARCHAR(255) | NOT NULL | User's display name. |
+| hostel | VARCHAR(100) | NULLABLE | Hostel assigned to the user. Populated for Hostel Supervisors to enable complaint routing; NULL for other roles. |
 | role_id | UUID | NOT NULL, FK → roles(id) | Role assigned to the user. |
 | created_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Record creation timestamp. |
 | updated_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Record last‑update timestamp. |
@@ -117,6 +118,7 @@ Tracks each student‑submitted ticket and its lifecycle, including AI recommend
 | id | UUID | PK | Primary key for the complaint. |
 | title | VARCHAR(255) | NOT NULL | Short summary of the issue. |
 | description | TEXT | NOT NULL | Detailed description provided by the student. |
+| location | VARCHAR(255) | NOT NULL | Location of the issue (e.g., Hostel A – Room 212). |
 | status | VARCHAR(20) | NOT NULL | Current workflow state (e.g., "Open", "InProgress", "Resolved"). |
 | ai_category | VARCHAR(100) | NULLABLE | Category suggested by the AI engine. |
 | ai_priority | VARCHAR(50) | NULLABLE | Priority suggested by the AI engine. |

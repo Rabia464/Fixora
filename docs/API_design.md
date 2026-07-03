@@ -1,4 +1,4 @@
-1. API Overview
+# 1. API Overview
 The Fixora API provides the programmatic entry point for the React front‑end to interact with the core business logic of the application. Its primary purpose is to expose the operations required to support the Version 1 complaint workflow—student complaint submission, AI‑generated recommendation, supervisor review and override, forwarding to the maintenance office, maintenance updates, and final student confirmation or automatic closure—while enforcing role‑based access control and preserving data integrity.
 
 Communication between the front‑end and the back‑end is performed over HTTPS using a RESTful style. Each request and response is encoded in JSON, which aligns with the lightweight data interchange format expected by the React client and the FastAPI server. The use of standard HTTP verbs (GET, POST, PATCH, DELETE) maps naturally to Create, Read, Update, and Delete operations on the underlying PostgreSQL tables, ensuring a clear contract between consumer and provider.
@@ -289,7 +289,6 @@ Results are returned in a paginated form to support efficient retrieval of large
 |-------------|-------------|
 | 401 Unauthorized | Authentication required. |
 | 403 Forbidden | User lacks permission. |
-```
 
 ### Business Rules
 
@@ -338,81 +337,376 @@ Student, Hostel Supervisor, Maintenance Office
 - AI recommendations remain visible even if overridden.
 - Override information is included whenever applicable.
 
-4.4 Supervisor Endpoints
+## 4.4 Supervisor Endpoints
 
-The Supervisor API provides endpoints for Hostel Supervisors to review complaints submitted by students, inspect AI-generated recommendations, override those recommendations when necessary, and forward complaints to the Maintenance Office. These endpoints support the human-in-the-loop philosophy adopted by Fixora, where AI assists decision-making but the Hostel Supervisor retains final authority before a complaint proceeds further in the workflow.
+The Supervisor API provides endpoints for Hostel Supervisors to review complaints submitted by students, inspect AI-generated recommendations, override those recommendations when necessary, and forward complaints to the Maintenance Office. These endpoints embody the human-in-the-loop principle adopted by Fixora: the AI module generates initial recommendations, but the Hostel Supervisor holds final authority before a complaint advances in the workflow.
 
-PATCH /api/v1/complaints/{id}/review
-Purpose
+---
 
-Allows a Hostel Supervisor to review a complaint, optionally modify the AI-generated category, priority, or department, and save the final recommendation.
+### PATCH /api/v1/complaints/{id}/review
 
-Access
+#### Purpose
+Allows a Hostel Supervisor to review a complaint, inspect the AI-generated category, priority, and department assignment, and confirm or override those values before the complaint is forwarded to the Maintenance Office.
 
+#### Access
 Hostel Supervisor
 
-Request Body
-Field	Type	Required	Description
-category	string	Yes	Final complaint category after review.
-priority	string	Yes	Final complaint priority.
-department	string	Yes	Department responsible for handling the complaint.
-override	boolean	Yes	Indicates whether the AI recommendation was overridden.
+#### Request Body
 
-Example Request
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| category | string | Yes | Final complaint category after supervisor review. |
+| priority | string | Yes | Final complaint priority (e.g., Low, Medium, High, Critical). |
+| department | string | Yes | Department assigned to handle the complaint. |
+| override | boolean | Yes | Set to `true` if the supervisor has modified the AI recommendation; `false` if accepted as-is. |
 
+**Example Request**
+
+```json
 {
   "category": "Plumbing",
   "priority": "High",
   "department": "Maintenance",
   "override": true
 }
-Successful Response
+```
 
-Status Code: 200 OK
+#### Successful Response
 
+**Status Code:** `200 OK`
+
+```json
 {
   "message": "Complaint reviewed successfully.",
   "status": "UnderReview",
   "supervisor_override": true
 }
-Possible Error Responses
-Status Code	Description
-400 Bad Request	Invalid request body.
-401 Unauthorized	Authentication required.
-403 Forbidden	User is not a Hostel Supervisor.
-404 Not Found	Complaint not found.
-500 Internal Server Error	Unexpected server error.
-Business Rules
-Only Hostel Supervisors can review complaints.
-AI recommendations remain stored even if overridden.
-The Supervisor's final values become the active recommendation.
-Every override generates an audit log entry.
-The complaint status becomes UnderReview if it was previously Open.
-PATCH /api/v1/complaints/{id}/forward
-Purpose
+```
 
-Forwards a reviewed complaint to the Maintenance Office for action.
+#### Possible Error Responses
 
-Access
+| Status Code | Description |
+|-------------|-------------|
+| 400 Bad Request | Invalid or incomplete request body. |
+| 401 Unauthorized | Authentication required. |
+| 403 Forbidden | User is not a Hostel Supervisor. |
+| 404 Not Found | Complaint not found. |
+| 500 Internal Server Error | Unexpected server error. |
 
+#### Business Rules
+
+- Only Hostel Supervisors may invoke this endpoint.
+- The original AI-generated recommendation is always retained in the database regardless of whether an override occurred.
+- The values submitted by the Hostel Supervisor become the active values used throughout the remainder of the workflow.
+- Every override action generates a corresponding audit log entry recording the supervisor's identity, timestamp, and the values changed.
+- The complaint status transitions to `UnderReview` upon successful review if the complaint was previously in the `Open` state.
+
+---
+
+### PATCH /api/v1/complaints/{id}/forward
+
+#### Purpose
+Forwards a reviewed complaint from the Hostel Supervisor to the Maintenance Office. This endpoint marks the complaint as ready for maintenance action and triggers a notification to the Maintenance Office.
+
+#### Access
 Hostel Supervisor
 
-Request Body
+#### Request Body
+No request body is required for this endpoint.
 
-No request body is required.
+#### Successful Response
 
-Successful Response
+**Status Code:** `200 OK`
 
-Status Code: 200 OK
-
+```json
 {
-  "message": "Complaint forwarded successfully.",
+  "message": "Complaint forwarded to Maintenance Office successfully.",
   "status": "Forwarded"
 }
-Possible Error Responses
-Status Code	Description
-401 Unauthorized	Authentication required.
-403 Forbidden	User is not a Hostel Supervisor.
-404 Not Found	Complaint not found.
-409 Conflict	Complaint has not yet been reviewed.
-500 Internal Server Error	Unexpected server error.
+```
+
+#### Possible Error Responses
+
+| Status Code | Description |
+|-------------|-------------|
+| 401 Unauthorized | Authentication required. |
+| 403 Forbidden | User is not a Hostel Supervisor. |
+| 404 Not Found | Complaint not found. |
+| 409 Conflict | Complaint has not been reviewed and cannot be forwarded. |
+| 500 Internal Server Error | Unexpected server error. |
+
+#### Business Rules
+
+- Only Hostel Supervisors may forward complaints.
+- A complaint must have been reviewed (status `UnderReview`) before it can be forwarded; forwarding an unreviewed complaint returns `409 Conflict`.
+- Upon successful forwarding, the complaint status changes to `Forwarded`.
+- An in-app notification is dispatched to the Maintenance Office upon forwarding.
+- An audit log entry is created recording the forwarding action, the responsible supervisor, and the timestamp.
+- The forwarded complaint becomes visible on the Maintenance Office dashboard for action.
+
+---
+
+## 4.5 Maintenance Office Endpoints
+
+The Maintenance Office API provides endpoints that allow Maintenance Office personnel to view complaints forwarded to them by Hostel Supervisors, begin work on a complaint, and mark complaints as resolved once maintenance work is complete. These endpoints represent the final active phase of the complaint lifecycle before student confirmation or automatic closure.
+
+---
+
+### GET /api/v1/maintenance/complaints
+
+#### Purpose
+Retrieves all complaints that have been forwarded to the Maintenance Office and are awaiting action or currently in progress.
+
+#### Access
+Maintenance Office
+
+#### Query Parameters (Optional)
+
+| Parameter | Description |
+|-----------|-------------|
+| status | Filter by status (`Forwarded`, `InProgress`). |
+| page | Page number for pagination. |
+| limit | Number of records per page. |
+
+#### Successful Response
+
+**Status Code:** `200 OK`
+
+```json
+[
+  {
+    "id": "complaint-uuid",
+    "title": "Water leakage in washroom",
+    "location": "Hostel A - Room 212",
+    "status": "Forwarded",
+    "category": "Plumbing",
+    "priority": "High",
+    "department": "Maintenance"
+  }
+]
+```
+
+#### Possible Error Responses
+
+| Status Code | Description |
+|-------------|-------------|
+| 401 Unauthorized | Authentication required. |
+| 403 Forbidden | User is not a Maintenance Office member. |
+| 500 Internal Server Error | Unexpected server error. |
+
+#### Business Rules
+
+- Only Maintenance Office personnel may access this endpoint.
+- Only complaints in `Forwarded` or `InProgress` status are returned.
+- Category, priority, and department reflect the supervisor-reviewed values (overridden values take precedence over AI values).
+
+---
+
+### PATCH /api/v1/complaints/{id}/progress
+
+#### Purpose
+Marks a forwarded complaint as `InProgress`, indicating that the Maintenance Office has begun working on the issue.
+
+#### Access
+Maintenance Office
+
+#### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| note | string | No | Optional progress note visible to the student. |
+
+**Example Request**
+
+```json
+{
+  "note": "Technician assigned. Work will begin tomorrow morning."
+}
+```
+
+#### Successful Response
+
+**Status Code:** `200 OK`
+
+```json
+{
+  "message": "Complaint status updated to InProgress.",
+  "status": "InProgress"
+}
+```
+
+#### Possible Error Responses
+
+| Status Code | Description |
+|-------------|-------------|
+| 401 Unauthorized | Authentication required. |
+| 403 Forbidden | User is not a Maintenance Office member. |
+| 404 Not Found | Complaint not found. |
+| 409 Conflict | Complaint is not in `Forwarded` status. |
+| 500 Internal Server Error | Unexpected server error. |
+
+#### Business Rules
+
+- Only Maintenance Office personnel may invoke this endpoint.
+- Complaint must be in `Forwarded` status; otherwise, `409 Conflict` is returned.
+- Complaint status transitions to `InProgress`.
+- A notification is sent to the student informing them that work has begun.
+- An audit log entry is created.
+
+---
+
+### PATCH /api/v1/complaints/{id}/resolve
+
+#### Purpose
+Marks a complaint as `Resolved`, indicating that the Maintenance Office has completed the work. The student is then notified to confirm the resolution.
+
+#### Access
+Maintenance Office
+
+#### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| resolution_note | string | Yes | Description of the work completed. |
+
+**Example Request**
+
+```json
+{
+  "resolution_note": "Leaking pipe replaced. Area cleaned and tested."
+}
+```
+
+#### Successful Response
+
+**Status Code:** `200 OK`
+
+```json
+{
+  "message": "Complaint marked as resolved. Student has been notified.",
+  "status": "Resolved"
+}
+```
+
+#### Possible Error Responses
+
+| Status Code | Description |
+|-------------|-------------|
+| 400 Bad Request | Missing resolution note. |
+| 401 Unauthorized | Authentication required. |
+| 403 Forbidden | User is not a Maintenance Office member. |
+| 404 Not Found | Complaint not found. |
+| 409 Conflict | Complaint is not in `InProgress` status. |
+| 500 Internal Server Error | Unexpected server error. |
+
+#### Business Rules
+
+- Only Maintenance Office personnel may invoke this endpoint.
+- Complaint must be in `InProgress` status; otherwise `409 Conflict` is returned.
+- Complaint status transitions to `Resolved`.
+- A notification is sent to the student prompting them to confirm the resolution.
+- The system begins a 48-hour auto-close timer from this point. If the student does not confirm within 48 hours, the complaint is automatically closed.
+- An audit log entry is created recording the resolution note and the acting user.
+
+---
+
+## 4.6 Student Confirmation & Reopen Endpoints
+
+Once the Maintenance Office marks a complaint as `Resolved`, the student is notified and given the opportunity to confirm the resolution or reopen the complaint if the issue persists. If the student does not respond within 48 hours, the system automatically closes the complaint.
+
+---
+
+### PATCH /api/v1/complaints/{id}/confirm
+
+#### Purpose
+Allows a student to confirm that their complaint has been resolved satisfactorily. On confirmation, the complaint status transitions to `Closed` and the ticket lifecycle is complete.
+
+#### Access
+Student (complaint owner only)
+
+#### Request Body
+No request body is required for this endpoint.
+
+#### Successful Response
+
+**Status Code:** `200 OK`
+
+```json
+{
+  "message": "Complaint confirmed and closed.",
+  "status": "Closed"
+}
+```
+
+#### Possible Error Responses
+
+| Status Code | Description |
+|-------------|-------------|
+| 401 Unauthorized | Authentication required. |
+| 403 Forbidden | User is not the complaint owner. |
+| 404 Not Found | Complaint not found. |
+| 409 Conflict | Complaint is not in `Resolved` status. |
+| 500 Internal Server Error | Unexpected server error. |
+
+#### Business Rules
+
+- Only the Student who originally submitted the complaint may confirm it.
+- The complaint must be in `Resolved` status; otherwise `409 Conflict` is returned.
+- Complaint status transitions to `Closed`.
+- An audit log entry is created.
+- A notification is sent to the Maintenance Office confirming closure.
+
+---
+
+### PATCH /api/v1/complaints/{id}/reopen
+
+#### Purpose
+Allows a student to reopen a complaint if the reported issue was not fully resolved. Reopening begins a new lifecycle for the complaint.
+
+#### Access
+Student (complaint owner only)
+
+#### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| reason | string | Yes | Explanation of why the complaint is being reopened. |
+
+**Example Request**
+
+```json
+{
+  "reason": "The pipe is still leaking. The issue was not fully fixed."
+}
+```
+
+#### Successful Response
+
+**Status Code:** `200 OK`
+
+```json
+{
+  "message": "Complaint reopened successfully.",
+  "status": "Reopened"
+}
+```
+
+#### Possible Error Responses
+
+| Status Code | Description |
+|-------------|-------------|
+| 400 Bad Request | Missing reopen reason. |
+| 401 Unauthorized | Authentication required. |
+| 403 Forbidden | User is not the complaint owner. |
+| 404 Not Found | Complaint not found. |
+| 409 Conflict | Complaint is not in `Resolved` or `Closed` status. |
+| 500 Internal Server Error | Unexpected server error. |
+
+#### Business Rules
+
+- Only the Student who originally submitted the complaint may reopen it.
+- The complaint must be in `Resolved` or `Closed` status; otherwise `409 Conflict` is returned.
+- Complaint status transitions to `Reopened`.
+- The reopen reason is stored in the audit log.
+- A notification is sent to the Hostel Supervisor and the Maintenance Office.
+- An audit log entry is created recording the reason and the timestamp.

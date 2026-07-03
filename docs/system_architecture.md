@@ -192,7 +192,7 @@ All errors are **logged** with correlation IDs to aid correlation between fronte
 
 # 11. Security Architecture
 
-- **JWT** signed with RSA/ECDSA; private key stored in a secure vault (environment variable).  Short expiry (15 min) reduces token replay.
+- **JWT** signed with HS256 using a shared secret (`JWT_SECRET_KEY`) stored as an environment variable; tokens expire after 15 minutes to limit replay risk.
 - **Password hashing** – Not applicable (GIKI email based) but future local accounts would use Argon2.
 - **Environment variables** – Secrets (DB creds, JWT keys) loaded via `python‑dotenv` and never committed.
 - **SQL Injection protection** – All DB access via SQLAlchemy ORM with bound parameters.
