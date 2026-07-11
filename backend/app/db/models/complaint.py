@@ -17,6 +17,7 @@ class Complaint(Base, UUIDMixin, TimestampMixin):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     location: Mapped[str] = mapped_column(String(255), nullable=False)
+    hostel: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     status: Mapped[ComplaintStatus] = mapped_column(String(20), nullable=False, index=True)
 
     # AI Recommendation Fields (Nullable if AI fails)
@@ -44,6 +45,7 @@ class Complaint(Base, UUIDMixin, TimestampMixin):
     __table_args__ = (
         Index("ix_complaints_created_by_status", "created_by", "status"),
         Index("ix_complaints_supervisor_id_status", "supervisor_id", "status"),
+        Index("ix_complaints_hostel_status", "hostel", "status"),
     )
 
     def __repr__(self) -> str:

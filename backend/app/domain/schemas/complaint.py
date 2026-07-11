@@ -22,6 +22,7 @@ class ComplaintResponse(ComplaintBase):
     Full representation of a complaint returned to clients.
     """
     id: uuid.UUID
+    hostel: str
     status: ComplaintStatus
     
     ai_category: Optional[str] = None

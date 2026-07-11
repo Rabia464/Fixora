@@ -54,6 +54,20 @@ class ComplaintRepository(BaseRepository[Complaint]):
         )
         return list(result.scalars().all())
 
+    async def get_multi_by_hostel_and_status(self, db: AsyncSession, hostel: str, status: ComplaintStatus, skip: int = 0, limit: int = 100) -> List[Complaint]:
+        """
+        Fetch complaints for a hostel filtered by status.
+        Supports supervisor dashboard isolation by canonical hostel identifier.
+        """
+        result = await db.execute(
+            select(Complaint)
+            .where(Complaint.hostel == hostel)
+            .where(Complaint.status == status)
+            .order_by(Complaint.created_at.desc())
+            .offset(skip).limit(limit)
+        )
+        return list(result.scalars().all())
+
     async def get_forwarded_to_maintenance(self, db: AsyncSession, skip: int = 0, limit: int = 100) -> List[Complaint]:
         """
         Fetch complaints that are currently in the Maintenance workflow (Forwarded, InProgress).

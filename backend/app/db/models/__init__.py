@@ -1,4 +1,3 @@
-from .base import Base  # Assuming base.py is created if needed, or import from session
 from app.db.session import Base
 from .role import Role
 from .user import User
