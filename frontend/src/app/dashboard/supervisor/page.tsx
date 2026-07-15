@@ -1,47 +1,79 @@
 "use client"
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useRouter } from 'next/navigation';
 import { GlassCard } from '../../../components/GlassCard';
 import { BubblyButton } from '../../../components/BubblyButton';
 import { Badge } from '../../../components/Badge';
+import { CheckCircle2, FileWarning } from 'lucide-react';
 import styles from './supervisor.module.css';
 
+// Using a Client Component here because we need interactivity (button clicks) to mutate data.
+// In Next.js 14, we could use Server Actions to keep this a Server Component, 
+// but calling the API route from a client component is perfectly standard for mutations.
 export default function SupervisorDashboard() {
-  const [tickets, setTickets] = useState<any[]>([]);
+  const router = useRouter();
+  const [tickets, setTickets] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
-  useEffect(() => {
-    // In a real app, this would fetch only "Open" tickets for their hostel.
-    // We mock it for the UI implementation since DB isn't connected.
-    setTickets([
-      { id: '1', title: 'Leaking Pipe in Room 204', description: 'Water is dripping from the ceiling.', status: 'Open', ai_priority: 'High', ai_category: 'Plumbing' },
-      { id: '2', title: 'Broken Window', description: 'Window won\'t close properly.', status: 'Open', ai_priority: 'Medium', ai_category: 'Carpentry' }
-    ]);
+  React.useEffect(() => {
+    fetch('/api/complaints')
+      .then(res => res.json())
+      .then(data => {
+        setTickets(data);
+        setLoading(false);
+      });
   }, []);
 
-  const handleForward = (id: string) => {
+  const handleForward = async (id: number) => {
+    await fetch('/api/complaints', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status: 'In Progress' })
+    });
     // Optimistic UI update
-    setTickets(tickets.filter(t => t.id !== id));
+    setTickets(prev => prev.map(t => t.id === id ? { ...t, status: 'In Progress' } : t));
+    router.refresh();
   };
+
+  const pendingTickets = tickets.filter(t => t.status === 'Pending');
 
   return (
     <div className={`animate-pop-in ${styles.dashboard}`}>
-      <h1 className={styles.header}>Supervisor Review Board</h1>
-      
+      <div style={{display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px'}}>
+        <FileWarning size={32} color="var(--color-primary-dark)" />
+        <h1 className={styles.header}>AI Review Board</h1>
+      </div>
+
       <div className={styles.grid}>
-        {tickets.map(ticket => (
+        {loading ? <p>Loading tickets...</p> : pendingTickets.length === 0 ? (
+          <GlassCard style={{textAlign: 'center', padding: '64px'}}>
+            <CheckCircle2 size={64} color="var(--color-success)" style={{margin: '0 auto 16px'}} />
+            <h2>All Caught Up!</h2>
+            <p style={{color: 'var(--color-text-muted)'}}>No pending tickets to review.</p>
+          </GlassCard>
+        ) : pendingTickets.map(ticket => (
           <GlassCard key={ticket.id} className={styles.ticketCard}>
-            <div>
+            <div className={styles.ticketHeader}>
               <div className={styles.ticketTitle}>{ticket.title}</div>
-              <p style={{ color: 'var(--color-text-muted)', fontSize: '14px', marginTop: '8px' }}>{ticket.description}</p>
+              <span className={styles.date}>{new Date(ticket.created_at).toLocaleDateString()}</span>
             </div>
             
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <Badge status="info">AI: {ticket.ai_category}</Badge>
-              <Badge status={ticket.ai_priority === 'High' ? 'danger' : 'warning'}>AI: {ticket.ai_priority}</Badge>
+            <div className={styles.ticketDesc}>{ticket.description}</div>
+            <div className={styles.ticketLocation}>📍 {ticket.location}</div>
+
+            <div className={styles.aiPredictionBox}>
+              <div className={styles.aiPredictionHeader}>AI Prediction</div>
+              <div className={styles.aiBadges}>
+                <Badge status="info">Category: {ticket.ai_category}</Badge>
+                <Badge status={ticket.ai_priority === 'Critical' ? 'danger' : 'warning'}>
+                  Priority: {ticket.ai_priority}
+                </Badge>
+              </div>
             </div>
 
-            <div className={styles.actions}>
-              <BubblyButton onClick={() => handleForward(ticket.id)}>Approve & Forward</BubblyButton>
+            <div className={styles.actionArea}>
               <BubblyButton variant="secondary">Override AI</BubblyButton>
+              <BubblyButton onClick={() => handleForward(ticket.id)}>Approve & Forward</BubblyButton>
             </div>
           </GlassCard>
         ))}

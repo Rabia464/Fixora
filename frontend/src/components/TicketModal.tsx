@@ -22,37 +22,29 @@ export const TicketModal: React.FC<TicketModalProps> = ({ isOpen, onClose }) => 
   const handleBack = () => setStep(s => s - 1);
 
   const handleSubmit = async () => {
-    const token = localStorage.getItem('token');
-    
-    if (!token) {
-      // Save draft and send to login
-      sessionStorage.setItem('ticketDraft', JSON.stringify({ title, description, location }));
-      router.push('/login?redirect=/');
-      return;
-    }
-
     try {
-      const res = await fetch('http://localhost:8000/api/v1/complaints', {
+      const res = await fetch('/api/complaints', {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ title, description, location })
       });
       
       if (res.ok) {
-        sessionStorage.removeItem('ticketDraft');
         onClose();
         router.push('/dashboard/student');
+        router.refresh();
       } else {
-        throw new Error("API failed");
+        // If not logged in, API returns 401
+        if (res.status === 401) {
+          router.push('/login');
+        } else {
+          throw new Error("API failed");
+        }
       }
     } catch (err) {
-      console.warn("Mocking ticket submission");
-      sessionStorage.removeItem('ticketDraft');
-      onClose();
-      router.push('/dashboard/student');
+      console.warn("Failed ticket submission", err);
     }
   };
 

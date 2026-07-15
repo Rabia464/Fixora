@@ -1,78 +1,29 @@
-"use client"
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { GlassCard } from '../../../components/GlassCard';
-import { BubblyButton } from '../../../components/BubblyButton';
 import { Badge } from '../../../components/Badge';
+import { Flame, Star, UserRound } from 'lucide-react';
+import { mockTickets } from '../../api/data';
 import styles from './student.module.css';
 
-export default function StudentDashboard() {
-  const [tickets, setTickets] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  // Form State
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [location, setLocation] = useState('');
-
-  useEffect(() => {
-    fetchTickets();
-  }, []);
-
-  const fetchTickets = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:8000/api/v1/complaints', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setTickets(data);
-      }
-    } catch (err) {
-      console.error("Failed to fetch tickets", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:8000/api/v1/complaints', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ title, description, location })
-      });
-      
-      if (res.ok) {
-        setTitle('');
-        setDescription('');
-        setLocation('');
-        fetchTickets(); // Refresh list
-      }
-    } catch (err) {
-      console.error("Failed to submit ticket", err);
-    }
-  };
+// Server Component
+export default async function StudentDashboard() {
+  // In a real app we would query DB by student ID. Here we just take all tickets for the demo.
+  const tickets = mockTickets;
 
   return (
     <div className={`animate-pop-in ${styles.dashboard}`}>
       
       <GlassCard className={styles.profileBanner}>
-        <div className={styles.avatar}>🧑‍🎓</div>
+        <div className={styles.avatar}><UserRound size={48} color="var(--color-primary-dark)" /></div>
         <div className={styles.profileInfo}>
           <div className={styles.welcomeText}>Welcome back, Fixer!</div>
           <div className={styles.statsRow}>
             <div className={styles.statBadge}>
-              <span>🔥</span>
+              <Flame size={18} color="#ff6b6b" />
               <span>3 Day Streak</span>
             </div>
             <div className={styles.statBadge}>
-              <span>⭐</span>
+              <Star size={18} color="#fcc419" />
               <span>120 Fixer Points</span>
             </div>
           </div>
@@ -81,9 +32,7 @@ export default function StudentDashboard() {
 
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>My Tickets</h2>
-        {loading ? (
-          <p>Loading tickets...</p>
-        ) : tickets.length === 0 ? (
+        {tickets.length === 0 ? (
           <p>No tickets found. You're all good!</p>
         ) : (
           <div className={styles.grid}>

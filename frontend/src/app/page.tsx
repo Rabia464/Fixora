@@ -4,16 +4,16 @@ import { GlassCard } from '../components/GlassCard';
 import { BubblyButton } from '../components/BubblyButton';
 import { Badge } from '../components/Badge';
 import { TicketModal } from '../components/TicketModal';
+import { Snowflake, Droplets, Wifi } from 'lucide-react';
 import styles from './page.module.css';
 
 export default function Home() {
   const [isModalOpen, setModalOpen] = useState(false);
 
-  // Mock live feed data
   const feed = [
-    { id: 1, text: "Maintenance just fixed the AC in Hostel A! ❄️", time: "2 mins ago" },
-    { id: 2, text: "Plumbing issue resolved in Hostel C! 💧", time: "15 mins ago" },
-    { id: 3, text: "New Wi-Fi router installed in Library 🌐", time: "1 hour ago" },
+    { id: 1, text: "Maintenance just fixed the AC in Hostel A!", time: "2 mins ago", icon: <Snowflake size={16} /> },
+    { id: 2, text: "Plumbing issue resolved in Hostel C!", time: "15 mins ago", icon: <Droplets size={16} /> },
+    { id: 3, text: "New Wi-Fi router installed in Library", time: "1 hour ago", icon: <Wifi size={16} /> },
   ];
 
   return (
@@ -33,7 +33,7 @@ export default function Home() {
       <section className={styles.dashboardGrid}>
         <GlassCard className={styles.statsCard}>
           <h2 style={{color: 'var(--color-primary-dark)', fontSize: '48px', fontWeight: 900}}>342</h2>
-          <p style={{fontWeight: 700, color: 'var(--color-text-muted)'}}>Issues Fixed This Month 🎉</p>
+          <p style={{fontWeight: 700, color: 'var(--color-text-muted)'}}>Issues Fixed This Month</p>
         </GlassCard>
 
         <GlassCard className={styles.feedCard}>
@@ -41,7 +41,7 @@ export default function Home() {
           <div className={styles.feedList}>
             {feed.map(item => (
               <div key={item.id} className={styles.feedItem}>
-                <Badge status="success">Resolved</Badge>
+                <Badge status="success"><span style={{display: 'flex', alignItems: 'center', gap: '4px'}}>{item.icon} Resolved</span></Badge>
                 <div style={{flex: 1}}>
                   <p style={{fontWeight: 600}}>{item.text}</p>
                   <span style={{fontSize: '12px', color: 'var(--color-text-muted)'}}>{item.time}</span>
