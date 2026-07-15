@@ -25,14 +25,12 @@ class Settings(BaseSettings):
     def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         if isinstance(v, str):
             return v
-        return PostgresDsn.build(
-            scheme="postgresql+asyncpg",
-            user=values.get("POSTGRES_USER"),
-            password=values.get("POSTGRES_PASSWORD"),
-            host=values.get("POSTGRES_SERVER"),
-            port=values.get("POSTGRES_PORT"),
-            path=f"/{values.get('POSTGRES_DB') or ''}",
-        )
+        user = values.get("POSTGRES_USER")
+        password = values.get("POSTGRES_PASSWORD")
+        server = values.get("POSTGRES_SERVER")
+        port = values.get("POSTGRES_PORT", "5432")
+        db = values.get("POSTGRES_DB")
+        return f"postgresql+asyncpg://{user}:{password}@{server}:{port}/{db}"
 
     class Config:
         env_file = ".env"
