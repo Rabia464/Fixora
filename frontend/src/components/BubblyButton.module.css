@@ -1,0 +1,42 @@
+.button {
+  display: inline-block;
+  padding: 14px 28px;
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  background-color: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  outline: none;
+  /* Duolingo 3D effect */
+  box-shadow: 0 6px 0 var(--color-primary-dark);
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, box-shadow;
+}
+
+.button:active {
+  transform: translateY(6px);
+  box-shadow: 0 0px 0 var(--color-primary-dark);
+}
+
+.button.secondary {
+  background-color: #fff;
+  color: var(--color-primary);
+  box-shadow: 0 6px 0 #e5e5e5;
+  border: 2px solid #e5e5e5;
+}
+
+.button.secondary:active {
+  transform: translateY(6px);
+  box-shadow: 0 0px 0 #e5e5e5;
+}
+
+.button.danger {
+  background-color: var(--color-danger);
+  box-shadow: 0 6px 0 var(--color-danger-dark);
+}
+.button.danger:active {
+  transform: translateY(6px);
+  box-shadow: 0 0px 0 var(--color-danger-dark);
+}

@@ -1,0 +1,97 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.header {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--color-primary-dark);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+.formCard {
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.input, .textarea {
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  border: 2px solid transparent;
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 16px;
+  outline: none;
+  transition: var(--transition-fast);
+  font-family: inherit;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.input:focus, .textarea:focus {
+  border-color: var(--color-primary);
+  background: white;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.ticketCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ticketHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ticketTitle {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.ticketDesc {
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.ticketMeta {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
