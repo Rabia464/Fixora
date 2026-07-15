@@ -61,40 +61,23 @@ export default function StudentDashboard() {
 
   return (
     <div className={`animate-pop-in ${styles.dashboard}`}>
-      <h1 className={styles.header}>Student Dashboard</h1>
       
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>Report an Issue</h2>
-        <GlassCard className={styles.formCard}>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>What's the issue?</label>
-              <input 
-                className={styles.input} 
-                placeholder="e.g. Broken Window" 
-                value={title} onChange={e => setTitle(e.target.value)} required 
-              />
+      <GlassCard className={styles.profileBanner}>
+        <div className={styles.avatar}>🧑‍🎓</div>
+        <div className={styles.profileInfo}>
+          <div className={styles.welcomeText}>Welcome back, Fixer!</div>
+          <div className={styles.statsRow}>
+            <div className={styles.statBadge}>
+              <span>🔥</span>
+              <span>3 Day Streak</span>
             </div>
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Where is it?</label>
-              <input 
-                className={styles.input} 
-                placeholder="e.g. Room 402, Hostel A" 
-                value={location} onChange={e => setLocation(e.target.value)} required 
-              />
+            <div className={styles.statBadge}>
+              <span>⭐</span>
+              <span>120 Fixer Points</span>
             </div>
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Describe it</label>
-              <textarea 
-                className={styles.textarea} 
-                placeholder="Please describe the issue in detail..." 
-                value={description} onChange={e => setDescription(e.target.value)} required 
-              />
-            </div>
-            <BubblyButton type="submit">Submit Ticket</BubblyButton>
-          </form>
-        </GlassCard>
-      </div>
+          </div>
+        </div>
+      </GlassCard>
 
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>My Tickets</h2>

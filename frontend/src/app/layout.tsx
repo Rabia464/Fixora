@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Navbar } from "../components/Navbar";
+import { Sidebar } from "../components/Sidebar";
 
 export const metadata: Metadata = {
   title: "Fixora",
@@ -15,10 +15,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Navbar />
-        <main style={{ padding: '32px', maxWidth: '1200px', margin: '0 auto' }}>
-          {children}
-        </main>
+        <div className="app-layout">
+          <Sidebar />
+          <main className="main-content">
+            {children}
+          </main>
+        </div>
       </body>
     </html>
   );

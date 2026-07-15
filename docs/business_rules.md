@@ -22,5 +22,11 @@ A complaint strictly follows this path:
 - These are *suggestions*. The system stores the original AI predictions immutably.
 - If a Supervisor disagrees, they use the `override` action. The system stores `overridden_category`, etc., and sets a `supervisor_override` boolean flag to true. This data is critical for future ML model retraining.
 
-## 4. Audit Logging
+## 4. Gamification (Fixer Score)
+To encourage active participation, students are awarded points based on the following:
+- **Reporting a Valid Issue:** +10 points when a ticket transitions to `Resolved`.
+- **AI Accuracy Bonus:** +5 points if the AI's initial prediction was NOT overridden by the Supervisor (encourages highly descriptive ticket titles).
+- **Streaks:** Reporting at least 1 valid issue per month maintains the "Fixer Streak".
+
+## 5. Audit Logging
 - Every state transition must generate an immutable `AuditLog` entry detailing the `action`, `performed_by`, and a JSON payload of the changes. This ensures accountability.

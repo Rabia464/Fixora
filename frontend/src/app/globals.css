@@ -74,3 +74,28 @@ body {
   animation: popIn 0.6s var(--spring-bubbly) forwards;
   will-change: transform, opacity;
 }
+
+/* App Layout */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  padding: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 100px; /* Space for mobile tab bar */
+}
+
+@media (min-width: 768px) {
+  .app-layout {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+  }
+  .main-content {
+    padding-bottom: 32px; /* Reset for desktop */
+  }
+}
+

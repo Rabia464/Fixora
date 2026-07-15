@@ -4,6 +4,54 @@
   gap: 32px;
 }
 
+.profileBanner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: linear-gradient(135deg, #e3fafc, #fff0f6);
+  padding: 32px;
+}
+
+.avatar {
+  font-size: 64px;
+  background: white;
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.profileInfo {
+  flex: 1;
+}
+
+.welcomeText {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-primary-dark);
+}
+
+.statsRow {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.statBadge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  color: var(--color-text-main);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
 .header {
   font-size: 32px;
   font-weight: 800;
