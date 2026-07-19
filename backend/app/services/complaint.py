@@ -93,7 +93,14 @@ class ComplaintService:
         elif role_name == UserRole.HOSTEL_SUPERVISOR.value:
             self._assert_complaint_supervisor_access(complaint, user)
         elif role_name == UserRole.MAINTENANCE_OFFICE.value:
-            if complaint.status not in [ComplaintStatus.FORWARDED, ComplaintStatus.IN_PROGRESS]:
+            allowed_maintenance_statuses = [
+                ComplaintStatus.FORWARDED, 
+                ComplaintStatus.IN_PROGRESS,
+                ComplaintStatus.RESOLVED,
+                ComplaintStatus.CLOSED,
+                ComplaintStatus.REOPENED
+            ]
+            if complaint.status not in allowed_maintenance_statuses:
                 raise ForbiddenException("Maintenance users can only access complaints in the maintenance workflow.")
         else:
             raise ForbiddenException("Role not authorized to access complaints.")

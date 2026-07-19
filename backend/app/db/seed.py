@@ -3,7 +3,7 @@ import logging
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import engine, async_session_maker
+from app.db.session import engine, AsyncSessionLocal
 from app.db.models import Role
 from app.domain.enums import UserRole
 
@@ -37,7 +37,7 @@ async def main() -> None:
     Main entry point for the seeding mechanism.
     """
     logger.info("Starting database seeding...")
-    async with async_session_maker() as session:
+    async with AsyncSessionLocal() as session:
         await seed_roles(session)
     logger.info("Database seeding finished successfully.")
 

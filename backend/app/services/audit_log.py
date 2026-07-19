@@ -30,5 +30,17 @@ class AuditLogService:
             },
         )
 
+    async def get_complaint_audit_logs(
+        self,
+        db: AsyncSession,
+        complaint_id: uuid.UUID,
+        current_user_id: uuid.UUID,
+    ):
+        from app.services.complaint import complaint_service
+        
+        # Enforce central RBAC: If the user can view the complaint, they can view its audit logs
+        await complaint_service.get_complaint(db, complaint_id, current_user_id)
+        
+        return await audit_log_repo.get_by_complaint(db, complaint_id)
 
 audit_log_service = AuditLogService()
