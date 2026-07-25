@@ -1,0 +1,193 @@
+@import 'tailwindcss';
+@import './tokens.css';
+@import './theme.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-body);
+  font-size: var(--text-body-md-size);
+  line-height: var(--text-body-md-line);
+  font-weight: var(--text-body-md-weight);
+  color: var(--color-neutral-800);
+  background-color: var(--color-bg-app);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  box-shadow: var(--color-focus-ring);
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+/* ——— Typography utilities (design_system.md §2.2) ——— */
+
+.text-display-lg {
+  font-family: var(--font-display);
+  font-size: var(--text-display-lg-size);
+  line-height: var(--text-display-lg-line);
+  font-weight: var(--text-display-lg-weight);
+}
+
+.text-display-md {
+  font-family: var(--font-display);
+  font-size: var(--text-display-md-size);
+  line-height: var(--text-display-md-line);
+  font-weight: var(--text-display-md-weight);
+}
+
+.text-h1 {
+  font-family: var(--font-heading);
+  font-size: var(--text-h1-size);
+  line-height: var(--text-h1-line);
+  font-weight: var(--text-h1-weight);
+}
+
+.text-h2 {
+  font-family: var(--font-heading);
+  font-size: var(--text-h2-size);
+  line-height: var(--text-h2-line);
+  font-weight: var(--text-h2-weight);
+}
+
+.text-h3 {
+  font-family: var(--font-heading);
+  font-size: var(--text-h3-size);
+  line-height: var(--text-h3-line);
+  font-weight: var(--text-h3-weight);
+}
+
+.text-h4 {
+  font-family: var(--font-heading);
+  font-size: var(--text-h4-size);
+  line-height: var(--text-h4-line);
+  font-weight: var(--text-h4-weight);
+}
+
+.text-body-lg {
+  font-family: var(--font-body);
+  font-size: var(--text-body-lg-size);
+  line-height: var(--text-body-lg-line);
+  font-weight: var(--text-body-lg-weight);
+}
+
+.text-body-md {
+  font-family: var(--font-body);
+  font-size: var(--text-body-md-size);
+  line-height: var(--text-body-md-line);
+  font-weight: var(--text-body-md-weight);
+}
+
+.text-body-sm {
+  font-family: var(--font-body);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--text-body-sm-weight);
+}
+
+.text-caption {
+  font-family: var(--font-body);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--text-caption-weight);
+}
+
+.text-mono-md {
+  font-family: var(--font-mono);
+  font-size: var(--text-mono-md-size);
+  line-height: var(--text-mono-md-line);
+  font-weight: var(--text-mono-md-weight);
+}
+
+.text-mono-sm {
+  font-family: var(--font-mono);
+  font-size: var(--text-mono-sm-size);
+  line-height: var(--text-mono-sm-line);
+  font-weight: var(--text-mono-sm-weight);
+}
+
+/* ——— Surface utilities ——— */
+
+.bg-subtle {
+  background-image: var(--gradient-bg-subtle);
+}
+
+.surface-glass {
+  background: var(--color-bg-surface-raised);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--color-border-glass);
+}
+
+.elevation-surface {
+  box-shadow: var(--elevation-surface);
+}
+
+.elevation-hover {
+  box-shadow: var(--elevation-hover);
+}
+
+.elevation-dropdown {
+  box-shadow: var(--elevation-dropdown);
+}
+
+.elevation-nav {
+  box-shadow: var(--elevation-nav);
+}
+
+.elevation-modal {
+  box-shadow: var(--elevation-modal);
+}
+
+/* Skeleton shimmer — design_system.md §6.3 */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-200) 0%,
+    var(--color-neutral-100) 50%,
+    var(--color-neutral-200) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.2s var(--ease-linear) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background: var(--color-neutral-200);
+  }
+
+  .surface-glass {
+    background: var(--color-neutral-0);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

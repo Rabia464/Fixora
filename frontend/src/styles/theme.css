@@ -1,0 +1,94 @@
+/**
+ * Tailwind v4 theme bridge — maps design tokens into utility classes.
+ * Values come only from tokens.css / docs/design_system.md.
+ */
+
+@theme {
+  --color-brand-primary: var(--color-brand-primary);
+  --color-brand-primary-hover: var(--color-brand-primary-hover);
+  --color-brand-primary-subtle: var(--color-brand-primary-subtle);
+  --color-brand-primary-muted: var(--color-brand-primary-muted);
+
+  --color-action-default: var(--color-action-default);
+  --color-action-hover: var(--color-action-hover);
+  --color-action-pressed: var(--color-action-pressed);
+  --color-action-subtle: var(--color-action-subtle);
+  --color-action-foreground: var(--color-action-foreground);
+  --color-action-ink: var(--color-action-ink);
+
+  --color-success-default: var(--color-success-default);
+  --color-success-subtle: var(--color-success-subtle);
+  --color-warning-default: var(--color-warning-default);
+  --color-warning-subtle: var(--color-warning-subtle);
+  --color-danger-default: var(--color-danger-default);
+  --color-danger-subtle: var(--color-danger-subtle);
+  --color-info-default: var(--color-info-default);
+  --color-info-subtle: var(--color-info-subtle);
+
+  --color-neutral-0: var(--color-neutral-0);
+  --color-neutral-50: var(--color-neutral-50);
+  --color-neutral-100: var(--color-neutral-100);
+  --color-neutral-200: var(--color-neutral-200);
+  --color-neutral-300: var(--color-neutral-300);
+  --color-neutral-400: var(--color-neutral-400);
+  --color-neutral-500: var(--color-neutral-500);
+  --color-neutral-600: var(--color-neutral-600);
+  --color-neutral-700: var(--color-neutral-700);
+  --color-neutral-800: var(--color-neutral-800);
+  --color-neutral-900: var(--color-neutral-900);
+
+  --color-bg-app: var(--color-bg-app);
+  --color-bg-surface: var(--color-bg-surface);
+  --color-bg-surface-raised: var(--color-bg-surface-raised);
+  --color-bg-overlay: var(--color-bg-overlay);
+  --color-bg-input: var(--color-bg-input);
+  --color-bg-input-disabled: var(--color-bg-input-disabled);
+
+  --color-border-default: var(--color-border-default);
+  --color-border-strong: var(--color-border-strong);
+  --color-border-focus: var(--color-border-focus);
+  --color-border-danger: var(--color-border-danger);
+  --color-border-glass: var(--color-border-glass);
+  --color-hover-surface: var(--color-hover-surface);
+  --color-hover-brand: var(--color-hover-brand);
+  --color-disabled-fg: var(--color-disabled-fg);
+  --color-disabled-bg: var(--color-disabled-bg);
+  --color-disabled-border: var(--color-disabled-border);
+
+  --font-display: var(--font-display);
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+
+  --spacing-0: var(--space-0);
+  --spacing-1: var(--space-1);
+  --spacing-2: var(--space-2);
+  --spacing-3: var(--space-3);
+  --spacing-4: var(--space-4);
+  --spacing-5: var(--space-5);
+  --spacing-6: var(--space-6);
+  --spacing-8: var(--space-8);
+  --spacing-10: var(--space-10);
+  --spacing-12: var(--space-12);
+  --spacing-16: var(--space-16);
+  --spacing-20: var(--space-20);
+  --spacing-24: var(--space-24);
+
+  --radius-none: var(--radius-none);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-full: var(--radius-full);
+
+  --shadow-surface: var(--elevation-surface);
+  --shadow-hover: var(--elevation-hover);
+  --shadow-dropdown: var(--elevation-dropdown);
+  --shadow-nav: var(--elevation-nav);
+  --shadow-modal: var(--elevation-modal);
+
+  --breakpoint-tablet: 640px;
+  --breakpoint-laptop: 1024px;
+  --breakpoint-desktop: 1280px;
+}
