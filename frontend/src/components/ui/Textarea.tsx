@@ -15,9 +15,9 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     const describedBy = error ? `${textareaId}-error` : helperText ? `${textareaId}-helper` : undefined
 
     return (
-      <div className="flex w-full flex-col gap-1.5">
+      <div className="flex w-full flex-col gap-2">
         {label ? (
-          <label htmlFor={textareaId} className="text-caption font-semibold text-neutral-800">
+          <label htmlFor={textareaId} className="text-caption font-semibold text-neutral-700">
             {label}
           </label>
         ) : null}

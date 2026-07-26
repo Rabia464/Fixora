@@ -50,11 +50,9 @@
   --color-bg-overlay: rgba(21, 32, 40, 0.4);
   --color-bg-input: var(--color-neutral-0);
   --color-bg-input-disabled: var(--color-neutral-200);
-  --gradient-bg-subtle: linear-gradient(
-    180deg,
-    var(--color-neutral-100) 0%,
-    var(--color-neutral-200) 100%
-  );
+  --gradient-bg-subtle: linear-gradient(180deg,
+      var(--color-neutral-100) 0%,
+      var(--color-neutral-200) 100%);
 
   /* ——— Glass (elevated surfaces only) ——— */
   --glass-blur: 16px;

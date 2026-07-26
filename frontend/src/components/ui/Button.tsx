@@ -8,12 +8,12 @@ type ButtonSize = 'sm' | 'md' | 'lg'
 
 const variantClass: Record<ButtonVariant, string> = {
   primary:
-    'bg-action-default text-action-foreground hover:bg-action-hover active:bg-action-pressed',
+    'bg-action-default text-action-foreground shadow-surface hover:shadow-hover hover:bg-action-hover active:bg-action-pressed',
   secondary:
     'bg-transparent text-brand-primary border border-brand-primary hover:bg-brand-primary-subtle',
   tertiary: 'bg-transparent text-neutral-800 hover:bg-hover-surface',
-  danger: 'bg-danger-default text-neutral-0 hover:opacity-90',
-  brand: 'bg-brand-primary text-neutral-0 hover:bg-brand-primary-hover',
+  danger: 'bg-danger-default text-neutral-0 shadow-surface hover:shadow-hover hover:opacity-90',
+  brand: 'bg-brand-primary text-neutral-0 shadow-surface hover:shadow-hover hover:bg-brand-primary-hover',
 }
 
 const sizeClass: Record<ButtonSize, string> = {
@@ -51,9 +51,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         type={type}
         disabled={isDisabled}
         className={cn(
-          'relative inline-flex items-center justify-center gap-2 rounded-md transition-colors',
-          'duration-[var(--motion-fast)] ease-[var(--ease-standard)]',
+          'relative inline-flex items-center justify-center gap-2 rounded-md transition-all',
+          'duration-[150ms] ease-[var(--ease-standard)]',
           'disabled:cursor-not-allowed disabled:bg-disabled-bg disabled:text-disabled-fg disabled:border-disabled-border',
+          'active:translate-y-px',
           variantClass[variant],
           sizeClass[size],
           className,

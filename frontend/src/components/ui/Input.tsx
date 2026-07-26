@@ -15,9 +15,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const describedBy = error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined
 
     return (
-      <div className="flex w-full flex-col gap-1.5">
+      <div className="flex w-full flex-col gap-2">
         {label ? (
-          <label htmlFor={inputId} className="text-caption font-semibold text-neutral-800">
+          <label htmlFor={inputId} className="text-caption font-semibold text-neutral-700">
             {label}
           </label>
         ) : null}

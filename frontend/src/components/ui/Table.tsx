@@ -86,7 +86,7 @@ export function TableTh({ children, className, ...props }: TableThProps) {
   return (
     <th
       className={cn(
-        'h-10 px-4 text-left text-caption font-semibold text-neutral-600 whitespace-nowrap',
+        'h-10 px-4 text-left text-caption font-semibold text-neutral-600 whitespace-nowrap align-middle',
         'border-b border-border-default',
         className,
       )}

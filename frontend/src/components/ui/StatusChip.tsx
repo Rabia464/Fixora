@@ -23,7 +23,7 @@ export function StatusChip({ status, label, icon, className }: StatusChipProps) 
         borderColor: tokens.border,
       }}
       className={cn(
-        'inline-flex h-6 items-center gap-1.5 rounded-[6px] border px-[10px] text-caption font-semibold select-none',
+        'inline-flex h-6 items-center gap-1 rounded-md border px-2 text-caption font-semibold select-none',
         className,
       )}
     >

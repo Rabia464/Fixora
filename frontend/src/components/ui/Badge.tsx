@@ -18,7 +18,7 @@ export function Badge({ variant = 'brand', count, className, children, ...props 
   return (
     <span
       className={cn(
-        'inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5',
+        'inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-2',
         'text-[10px] font-semibold leading-none tabular-nums',
         variantClass[variant],
         className,

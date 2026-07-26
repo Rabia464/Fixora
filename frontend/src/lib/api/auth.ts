@@ -3,6 +3,6 @@ import type { TokenResponse, User } from '@/types/api'
 
 export const authApi = {
   login: (email: string) =>
-    api.post<TokenResponse>('/auth/login', { email }, { auth: false }),
-  me: () => api.get<User>('/auth/me'),
+    api.post<unknown, TokenResponse>('/auth/login', { email }),
+  me: () => api.get<unknown, User>('/auth/me'),
 }

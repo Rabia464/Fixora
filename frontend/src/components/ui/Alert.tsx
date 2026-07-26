@@ -63,7 +63,7 @@ export function Alert({
         className,
       )}
     >
-      <div className={cn('mt-0.5 flex items-start', config.iconColorClass)}>
+      <div className={cn('flex shrink-0 items-start', config.iconColorClass)}>
         <Icon icon={DisplayIcon} size="md" />
       </div>
 

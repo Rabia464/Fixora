@@ -120,7 +120,7 @@ export function Sidebar({
       elevation="nav"
       as="aside"
       className={cn(
-        'flex h-full flex-col justify-between',
+        'flex h-full flex-col justify-between overflow-x-hidden',
         'transition-[width] duration-[var(--motion-normal)] ease-[var(--ease-standard)]',
         collapsed ? 'w-[72px]' : 'w-[240px]',
         className,

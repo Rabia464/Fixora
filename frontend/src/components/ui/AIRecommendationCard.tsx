@@ -26,10 +26,9 @@ export function AIRecommendationCard({
   return (
     <div
       className={cn(
-        'rounded-lg border bg-info-subtle p-4',
+        'rounded-lg border border-[var(--color-info-default)]/30 bg-info-subtle p-4',
         className,
       )}
-      style={{ borderColor: 'rgba(47,111,237,0.25)' }}
     >
       {/* Header */}
       <div className="mb-3 flex items-center gap-2">

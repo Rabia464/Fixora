@@ -125,9 +125,9 @@ export function Dropdown<T extends string = string>({
   }
 
   return (
-    <div ref={containerRef} className={cn('relative flex w-full flex-col gap-1.5', className)}>
+    <div ref={containerRef} className={cn('relative flex w-full flex-col gap-2', className)}>
       {label ? (
-        <label htmlFor={triggerId} className="text-caption font-semibold text-neutral-800">
+        <label htmlFor={triggerId} className="text-caption font-semibold text-neutral-700">
           {label}
         </label>
       ) : null}

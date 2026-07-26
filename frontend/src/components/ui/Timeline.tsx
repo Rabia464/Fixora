@@ -48,7 +48,7 @@ export function Timeline({ items, className }: TimelineProps) {
               {/* Dot */}
               <span
                 className={cn(
-                  'relative z-10 mt-0.5 flex h-3 w-3 shrink-0 rounded-full border-2',
+                  'relative z-10 mt-1 flex h-3 w-3 shrink-0 rounded-full border-2',
                   dotColor[variant],
                 )}
                 aria-hidden="true"
@@ -56,9 +56,8 @@ export function Timeline({ items, className }: TimelineProps) {
               {/* Connecting line */}
               {!isLast && (
                 <span
-                  className="w-px flex-1 bg-border-default"
+                  className="mt-1 w-px flex-1 bg-border-default"
                   aria-hidden="true"
-                  style={{ marginTop: '2px' }}
                 />
               )}
             </div>

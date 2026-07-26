@@ -137,7 +137,7 @@ export function UIShowcase() {
         />
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto px-8 py-10">
+        <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-8 sm:py-10">
           {/* Page header */}
           <div className="mb-10">
             <Text variant="display-md" className="mb-1 text-neutral-900" style={{ fontFamily: 'var(--font-display)' }}>
