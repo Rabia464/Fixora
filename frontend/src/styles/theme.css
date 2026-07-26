@@ -3,7 +3,7 @@
  * Values come only from tokens.css / docs/design_system.md.
  */
 
-@theme {
+@theme{
   --color-brand-primary: var(--color-brand-primary);
   --color-brand-primary-hover: var(--color-brand-primary-hover);
   --color-brand-primary-subtle: var(--color-brand-primary-subtle);
