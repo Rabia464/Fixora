@@ -1,16 +1,91 @@
 .dashboard {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 28px;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .header {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 800;
-  color: var(--color-primary-dark);
+  color: var(--color-text-main);
+  letter-spacing: -0.4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.list {
+.controlsBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  flex: 1;
+  min-width: 240px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.searchInput {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-main);
+  width: 100%;
+  font-family: inherit;
+}
+
+.filterChips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.chip {
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--glass-border);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s var(--spring-smooth);
+}
+
+.chip:hover {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-text-main);
+}
+
+.chip.active {
+  background: var(--color-indigo-bg);
+  color: var(--color-indigo);
+  border-color: var(--color-indigo-border);
+}
+
+.taskList {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -18,30 +93,60 @@
 
 .taskCard {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  align-items: center;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .taskCard {
+    flex-direction: row;
+    align-items: center;
+  }
 }
 
 .taskInfo {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
+  flex: 1;
+}
+
+.taskHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .taskTitle {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 800;
+  color: var(--color-text-main);
 }
 
-.actions {
+.taskLocation {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 6px;
 }
 
-@media (max-width: 600px) {
-  .taskCard {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
+.taskDesc {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-main);
+  line-height: 1.5;
+  background: rgba(255, 255, 255, 0.45);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.taskAction {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }

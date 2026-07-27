@@ -1,11 +1,58 @@
 .card {
-  padding: 24px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  transition: var(--transition-spring);
-  will-change: transform, box-shadow;
+  padding: 24px;
+  box-shadow: var(--glass-shadow);
+  transition: transform 0.25s var(--spring-smooth), box-shadow 0.25s var(--spring-smooth), border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Mouse spotlight light reflection overlay */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(255, 255, 255, 0.18),
+    transparent 80%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card:hover::before {
+  opacity: 1;
 }
 
 .card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(31, 38, 135, 0.1);
+  box-shadow: var(--glass-shadow-hover);
+  border-color: rgba(255, 255, 255, 0.65);
+}
+
+/* Subtle accent edge indicator */
+.card.mintAccent {
+  border-top: 3px solid var(--color-mint);
+}
+
+.card.cyanAccent {
+  border-top: 3px solid var(--color-cyan);
+}
+
+.card.yellowAccent {
+  border-top: 3px solid var(--color-amber);
+}
+
+.card.coralAccent {
+  border-top: 3px solid var(--color-coral);
+}
+
+.card.purpleAccent {
+  border-top: 3px solid var(--color-indigo);
 }

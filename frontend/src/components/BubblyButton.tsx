@@ -2,7 +2,7 @@ import React from 'react';
 import styles from './BubblyButton.module.css';
 
 interface BubblyButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger';
+  variant?: 'primary' | 'secondary' | 'danger' | 'warning' | 'purple' | 'ghost';
 }
 
 export const BubblyButton: React.FC<BubblyButtonProps> = ({ 

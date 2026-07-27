@@ -1,55 +1,144 @@
 .container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  min-height: calc(100vh - 150px);
+  justify-content: center;
+  min-height: calc(100vh - 120px);
+  gap: 24px;
+  padding: 16px;
 }
 
 .loginCard {
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+}
+
+.header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.logoBadge {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: var(--color-cyan-bg);
+  border: 1px solid var(--color-cyan-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
 }
 
 .title {
-  text-align: center;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 800;
-  color: var(--color-primary-dark);
+  color: var(--color-text-main);
+  letter-spacing: -0.4px;
 }
 
 .subtitle {
-  text-align: center;
   color: var(--color-text-muted);
-  margin-top: -16px;
   font-size: 14px;
+  font-weight: 500;
 }
 
 .inputGroup {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .input {
-  padding: 16px;
-  border-radius: var(--radius-sm);
-  border: 2px solid transparent;
-  background: rgba(255, 255, 255, 0.6);
-  font-size: 16px;
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text-main);
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(203, 213, 225, 0.8);
+  border-radius: var(--radius-md);
   outline: none;
-  transition: var(--transition-fast);
+  transition: all 0.2s var(--spring-smooth);
+  font-family: inherit;
 }
 
 .input:focus {
-  border-color: var(--color-primary);
-  background: white;
+  border-color: var(--color-cyan);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px var(--color-cyan-bg);
 }
 
-.error {
-  color: var(--color-danger-dark);
-  font-size: 14px;
-  text-align: center;
+.hintBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.roleGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.roleBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 8px;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s var(--spring-smooth);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+.roleBtn:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.roleIconCircle {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
