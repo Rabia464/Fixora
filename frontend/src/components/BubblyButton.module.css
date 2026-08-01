@@ -1,0 +1,99 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: white;
+  background-color: var(--color-cyan);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  outline: none;
+  position: relative;
+  user-select: none;
+  box-shadow: 0 4px 14px rgba(0, 150, 230, 0.25);
+  transition: transform 0.2s var(--spring-smooth), box-shadow 0.2s var(--spring-smooth), background-color 0.15s ease;
+  will-change: transform, box-shadow;
+}
+
+.button:hover {
+  transform: translateY(-2px) scale(1.015);
+  box-shadow: 0 8px 20px rgba(0, 150, 230, 0.32);
+}
+
+.button:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 8px rgba(0, 150, 230, 0.2);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Variants */
+.button.primary {
+  background: linear-gradient(135deg, #00a3ff 0%, #0077e6 100%);
+  box-shadow: 0 4px 14px rgba(0, 119, 230, 0.28);
+}
+
+.button.primary:hover {
+  box-shadow: 0 8px 20px rgba(0, 119, 230, 0.36);
+}
+
+.button.secondary {
+  background: linear-gradient(135deg, var(--color-mint) 0%, #228b3e 100%);
+  box-shadow: 0 4px 14px rgba(46, 175, 83, 0.28);
+}
+
+.button.secondary:hover {
+  box-shadow: 0 8px 20px rgba(46, 175, 83, 0.36);
+}
+
+.button.danger {
+  background: linear-gradient(135deg, var(--color-coral) 0%, #c92a2a 100%);
+  box-shadow: 0 4px 14px rgba(229, 72, 77, 0.28);
+}
+
+.button.danger:hover {
+  box-shadow: 0 8px 20px rgba(229, 72, 77, 0.36);
+}
+
+.button.warning {
+  background: linear-gradient(135deg, var(--color-amber) 0%, #b45309 100%);
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.28);
+}
+
+.button.warning:hover {
+  box-shadow: 0 8px 20px rgba(217, 119, 6, 0.36);
+}
+
+.button.purple {
+  background: linear-gradient(135deg, var(--color-indigo) 0%, #4f46e5 100%);
+  box-shadow: 0 4px 14px rgba(99, 91, 255, 0.28);
+}
+
+.button.purple:hover {
+  box-shadow: 0 8px 20px rgba(99, 91, 255, 0.36);
+}
+
+.button.ghost {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--color-text-main);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.button.ghost:hover {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
