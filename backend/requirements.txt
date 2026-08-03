@@ -1,22 +1,22 @@
 # ===========================================================
 # Fixora – Backend Production Dependencies
-# Python 3.12+
+# Python 3.12+ (Updated for 3.13 support)
 # Install: pip install -r requirements.txt
 # ===========================================================
 
 # ── Web Framework ───────────────────────────────────────────
-fastapi==0.111.1
-uvicorn[standard]==0.30.1          # ASGI server with watchfiles + httptools
+fastapi==0.115.5
+uvicorn[standard]==0.32.1          # ASGI server with watchfiles + httptools
 
 # ── Data Validation & Settings ──────────────────────────────
-pydantic==2.7.4
-pydantic[email]==2.7.4             # EmailStr support (used in user schemas)
-pydantic-settings==2.3.4           # Reads .env into typed Settings model
+pydantic==2.10.3
+pydantic[email]==2.10.3             # EmailStr support (used in user schemas)
+pydantic-settings==2.7.0           # Reads .env into typed Settings model
 
 # ── Database ────────────────────────────────────────────────
-sqlalchemy[asyncio]==2.0.31        # ORM + async engine support
-asyncpg==0.29.0                    # Async PostgreSQL driver (used by SQLAlchemy)
-alembic==1.13.2                    # Schema migration tool
+sqlalchemy[asyncio]==2.0.36        # ORM + async engine support
+asyncpg==0.30.0                    # Async PostgreSQL driver (updated for py 3.13)
+alembic==1.14.0                    # Schema migration tool
 
 # ── Authentication ───────────────────────────────────────────
 python-jose[cryptography]==3.3.0   # JWT creation and verification (HS256)
