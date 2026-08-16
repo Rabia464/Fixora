@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Home, LayoutDashboard, Eye, Wrench, LogOut, KeyRound, GraduationCap, ShieldCheck, Sun, Moon } from 'lucide-react';
+import { Home, LayoutDashboard, Eye, Wrench, LogOut, KeyRound, GraduationCap, ShieldCheck, Sun, Moon, Info } from 'lucide-react';
 import styles from './Sidebar.module.css';
 
 export const Sidebar: React.FC = () => {
@@ -81,7 +81,9 @@ export const Sidebar: React.FC = () => {
       {role ? (
         <NavItem icon={LogOut} label="Logout" action={handleLogout} />
       ) : (
-        <NavItem icon={KeyRound} label="Login" path="/login" />
+        <>
+          <NavItem icon={Info} label="About Fixora" path="/about" />
+        </>
       )}
 
       {/* Theme Switcher */}

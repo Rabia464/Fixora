@@ -4,6 +4,7 @@ import { RouteStub } from '@/app/RouteStub'
 import { UIShowcase } from '@/components/ui/UIShowcase'
 
 import { Login } from '@/pages/public/Login'
+import { About } from '@/pages/public/About'
 import { StudentLayout } from '@/components/layout/StudentLayout'
 import { SupervisorLayout } from '@/components/layout/SupervisorLayout'
 import { MaintenanceLayout } from '@/components/layout/MaintenanceLayout'
@@ -32,6 +33,11 @@ export const router = createBrowserRouter([
     element: <Navigate to="/login" replace />,
   },
   {
+    // /about is public — accessible whether logged in or not
+    path: '/about',
+    element: <About />,
+  },
+  {
     element: <RedirectIfAuthenticated />,
     children: [
       {
@@ -40,6 +46,7 @@ export const router = createBrowserRouter([
       },
     ],
   },
+
   {
     element: <RequireAuth />,
     children: [
