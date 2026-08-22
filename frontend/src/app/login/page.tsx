@@ -40,11 +40,22 @@ export default function Login() {
 
   return (
     <>
-      <div className={`animate-pop-in ${styles.container}`}>
+      <div className={styles.container}>
+
+        {/* ── Brand header — slides in first ── */}
+        <div className={styles.brandHeader}>
+          <div className={styles.brandLogoWrap}>
+            <Wrench size={26} color="#F0DFC0" strokeWidth={2.5} />
+          </div>
+          <h1 className={styles.brandTitle}>Fixora</h1>
+          <p className={styles.brandSub}>GIKI Hostel Complaint Management</p>
+        </div>
+
+        {/* ── Login card — slides in second ── */}
         <div className={styles.loginCard}>
           <div className={styles.header}>
-            <h1 className={styles.title}>Welcome to Fixora</h1>
-            <p className={styles.subtitle}>Please log in to continue</p>
+            <h2 className={styles.title}>Welcome back</h2>
+            <p className={styles.subtitle}>Sign in with your GIKI email</p>
           </div>
           
           <form onSubmit={handleFormSubmit} className={styles.formGroup}>
@@ -52,7 +63,7 @@ export default function Login() {
               <input 
                 type="email"
                 className={styles.input} 
-                placeholder="Enter your GIKI Email" 
+                placeholder="Enter your GIKI email" 
                 value={email} 
                 onChange={e => setEmail(e.target.value)} 
                 required 
@@ -60,41 +71,44 @@ export default function Login() {
             </div>
 
             <button type="submit" disabled={loading} className={styles.loginBtn}>
-              {loading ? 'Logging in...' : 'Login'}
+              {loading ? 'Logging in…' : 'Login'}
             </button>
+
+            <p className={styles.roleSectionLabel}>or sign in as</p>
+
+            {/* ── Role grid — pops in last ── */}
+            <div className={styles.roleGrid}>
+              <button 
+                type="button" 
+                className={styles.roleBtn}
+                onClick={() => handleLoginWithEmail('student@giki.edu.pk')}
+                title="Student"
+              >
+                <GraduationCap size={26} />
+                <span>Student</span>
+              </button>
+              
+              <button 
+                type="button" 
+                className={styles.roleBtn}
+                onClick={() => handleLoginWithEmail('supervisor@giki.edu.pk')}
+                title="Supervisor"
+              >
+                <ShieldCheck size={26} />
+                <span>Supervisor</span>
+              </button>
+              
+              <button 
+                type="button" 
+                className={styles.roleBtn}
+                onClick={() => handleLoginWithEmail('maintenance@giki.edu.pk')}
+                title="Maintenance"
+              >
+                <Wrench size={26} />
+                <span>Maintenance</span>
+              </button>
+            </div>
           </form>
-          
-          <div className={styles.roleGrid}>
-            <button 
-              type="button" 
-              className={styles.roleBtn}
-              onClick={() => handleLoginWithEmail('student@giki.edu.pk')}
-              title="Student"
-            >
-              <GraduationCap size={24} />
-              <span>Student</span>
-            </button>
-            
-            <button 
-              type="button" 
-              className={styles.roleBtn}
-              onClick={() => handleLoginWithEmail('supervisor@giki.edu.pk')}
-              title="Supervisor"
-            >
-              <ShieldCheck size={24} />
-              <span>Supervisor</span>
-            </button>
-            
-            <button 
-              type="button" 
-              className={styles.roleBtn}
-              onClick={() => handleLoginWithEmail('maintenance@giki.edu.pk')}
-              title="Maintenance"
-            >
-              <Wrench size={24} />
-              <span>Maintenance</span>
-            </button>
-          </div>
         </div>
       </div>
       <Footer />

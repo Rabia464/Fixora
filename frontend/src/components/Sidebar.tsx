@@ -59,7 +59,7 @@ export const Sidebar: React.FC = () => {
     <aside className={styles.sidebar}>
       <div className={styles.brand} onClick={() => router.push('/')}>
         <div className={styles.logoIcon}>
-          <Wrench size={20} color="#ffffff" />
+          <Wrench size={20} color="#F0DFC0" strokeWidth={2.5} />
         </div>
         <span className={styles.logoText}>Fixora</span>
       </div>
@@ -107,7 +107,7 @@ export const Sidebar: React.FC = () => {
           <div className={styles.userWidgetHeader}>
             <div className={styles.userAvatar}>
               {role === 'Student' ? (
-                <GraduationCap size={18} color="var(--color-cyan)" />
+                <GraduationCap size={18} color="var(--color-mint)" />
               ) : role === 'Hostel Supervisor' ? (
                 <ShieldCheck size={18} color="var(--color-amber)" />
               ) : (

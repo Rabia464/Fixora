@@ -39,12 +39,12 @@
 
 /* Variants */
 .button.primary {
-  background: linear-gradient(135deg, #00a3ff 0%, #0077e6 100%);
-  box-shadow: 0 4px 14px rgba(0, 119, 230, 0.28);
+  background: linear-gradient(135deg, var(--brand-brown) 0%, var(--brand-brown-dark) 100%);
+  box-shadow: 0 4px 14px rgba(150, 53, 30, 0.28);
 }
 
 .button.primary:hover {
-  box-shadow: 0 8px 20px rgba(0, 119, 230, 0.36);
+  box-shadow: 0 8px 20px rgba(150, 53, 30, 0.36);
 }
 
 .button.secondary {

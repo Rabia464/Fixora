@@ -4,8 +4,63 @@
   align-items: center;
   justify-content: center;
   min-height: calc(100vh - 120px);
-  gap: 24px;
+  gap: 28px;
   padding: 16px;
+}
+
+/* ── Staggered entrance for the whole block ── */
+.brandHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  opacity: 0;
+  animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+}
+
+@keyframes slideUp {
+  0%   { opacity: 0; transform: translateY(28px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.brandLogoWrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: #96351E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(150,53,30,0.32), inset 0 1px 1px rgba(255,255,255,0.25);
+  animation: logoPop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+
+@keyframes logoPop {
+  0%   { opacity: 0; transform: scale(0.55) rotate(-6deg); }
+  100% { opacity: 1; transform: scale(1)    rotate(0deg); }
+}
+
+.brandLogoText {
+  font-size: 26px;
+  font-weight: 800;
+  color: #F0DFC0;
+  letter-spacing: -0.5px;
+}
+
+.brandTitle {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-text-main);
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+.brandSub {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  margin: 0;
 }
 
 .loginCard {
@@ -14,11 +69,29 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  background: #96351E; /* Brown background for the card */
+  background: #96351E;
   padding: 40px 32px;
-  border-radius: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(219, 185, 143, 0.2);
+  border-radius: 28px;
+  box-shadow:
+    0 20px 60px rgba(100,30,10,0.28),
+    0 8px 24px  rgba(100,30,10,0.16),
+    inset 0 1px 0 rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.08);
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
+}
+
+/* Inner glass sheen on card */
+.loginCard::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, transparent 100%);
+  border-radius: 28px 28px 0 0;
+  pointer-events: none;
 }
 
 .header {
@@ -27,21 +100,22 @@
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+  position: relative;
+  z-index: 1;
 }
 
 .title {
-  font-size: 32px;
-  font-weight: 700; /* Bolder, not thin */
-  color: #F0DFC0; /* Lighter creamy beige */
-  letter-spacing: 0.2px; /* Slightly wider — softer, less sharp */
+  font-size: 28px;
+  font-weight: 800;
+  color: #F0DFC0;
+  letter-spacing: -0.3px;
   margin: 0;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.18);
 }
 
 .subtitle {
-  color: #DBB98F; /* Beige subtitle */
-  opacity: 0.8;
+  color: rgba(219,185,143,0.80);
   font-size: 14px;
   font-weight: 500;
   margin: 0;
@@ -50,7 +124,9 @@
 .formGroup {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
+  position: relative;
+  z-index: 1;
 }
 
 .inputGroup {
@@ -63,61 +139,84 @@
   width: 100%;
   padding: 14px 20px;
   font-size: 15px;
-  color: #7A2C14; /* Darker brown text inside input */
-  background: #F0DFC0; /* Lighter creamy beige — matches sidebar */
-  border: 1px solid transparent;
+  color: #7A2C14;
+  background: #F0DFC0;
+  border: 1.5px solid transparent;
   border-radius: 9999px;
   outline: none;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   font-family: inherit;
   text-align: center;
   box-sizing: border-box;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10), inset 0 1px 2px rgba(0,0,0,0.06);
 }
 
 .input::placeholder {
-  color: rgba(122, 44, 20, 0.5); /* Translucent dark brown for placeholder */
+  color: rgba(122,44,20,0.45);
   text-align: center;
 }
 
 .input:focus {
-  background: #fdf5e8;
-  border-color: #DBB98F;
-  box-shadow: 0 0 0 3px rgba(219, 185, 143, 0.35);
+  background: #fdf6e8;
+  border-color: rgba(219,185,143,0.60);
+  box-shadow: 0 0 0 3px rgba(219,185,143,0.28), 0 2px 8px rgba(0,0,0,0.10);
+  transform: scale(1.01);
 }
 
 .loginBtn {
   width: 100%;
-  padding: 14px 24px;
-  background: #F0DFC0; /* Lighter creamy beige — matches sidebar */
-  color: #7A2C14; /* Darker brown text */
+  padding: 15px 24px;
+  background: #F0DFC0;
+  color: #7A2C14;
   border: none;
   border-radius: 9999px;
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   text-align: center;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.5);
+  letter-spacing: -0.1px;
 }
 
 .loginBtn:hover:not(:disabled) {
-  background: #f5e8ce;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  background: #f8ecd4;
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+.loginBtn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.14);
+  transition-duration: 0.1s;
 }
 
 .loginBtn:disabled {
-  opacity: 0.7;
+  opacity: 0.60;
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+}
+
+/* ── Role grid ──────────────────────────────── */
+.roleSectionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(219,185,143,0.55);
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  margin-top: -6px;
 }
 
 .roleGrid {
   display: flex;
   justify-content: center;
   gap: 12px;
-  margin-top: 8px;
+  position: relative;
+  z-index: 1;
+  opacity: 0;
+  animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.30s both;
 }
 
 .roleBtn {
@@ -125,65 +224,71 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  width: 80px;
-  height: 80px;
-  background: rgba(219, 185, 143, 0.15); /* Semi-transparent beige */
-  border: 1px solid rgba(219, 185, 143, 0.3);
-  border-radius: 16px;
+  gap: 7px;
+  width: 84px;
+  height: 84px;
+  background: rgba(219,185,143,0.12);
+  border: 1px solid rgba(219,185,143,0.25);
+  border-radius: 20px;
   cursor: pointer;
-  /* Use a bouncy spring curve for hover states */
   transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   font-size: 11px;
-  font-weight: 600;
-  color: #DBB98F; /* Beige text */
+  font-weight: 700;
+  color: #DBB98F;
   padding: 8px;
   position: relative;
   overflow: hidden;
+  /* Inner specular */
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+}
+
+.roleBtn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.10) 0%, transparent 60%);
+  pointer-events: none;
 }
 
 .roleBtn:hover {
-  background: #DBB98F; /* Beige background on hover */
-  border-color: #DBB98F;
-  transform: translateY(-4px) scale(1.05); /* Playful lift and scale */
-  color: #96351E; /* Brown text on hover */
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  background: #DBB98F;
+  border-color: rgba(255,255,255,0.30);
+  transform: translateY(-5px) scale(1.06);
+  color: #7A2C14;
+  box-shadow: 0 14px 30px rgba(100,30,10,0.30), inset 0 1px 0 rgba(255,255,255,0.35);
 }
 
 .roleBtn:active {
-  transform: translateY(2px) scale(0.92); /* Satisfying squish when clicked */
+  transform: translateY(2px) scale(0.92);
   transition: all 0.1s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
 .roleBtn svg {
-  color: #DBB98F; /* Beige icon */
   transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .roleBtn:hover svg {
-  color: #96351E; /* Brown icon on hover */
-  transform: scale(1.15) translateY(-2px); /* Icon pop effect */
+  color: #7A2C14;
+  transform: scale(1.18) translateY(-2px);
 }
 
-/* Staggered popping entrance animation */
+/* Staggered pop-in for each button */
 @keyframes gridPopIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.5) translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  0%   { opacity: 0; transform: scale(0.5) translateY(20px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-.roleBtn:nth-child(1) {
-  animation: gridPopIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards 0.1s;
-}
-.roleBtn:nth-child(2) {
-  animation: gridPopIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards 0.2s;
-}
-.roleBtn:nth-child(3) {
-  animation: gridPopIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards 0.3s;
+.roleBtn:nth-child(1) { animation: gridPopIn 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.38s both; }
+.roleBtn:nth-child(2) { animation: gridPopIn 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.48s both; }
+.roleBtn:nth-child(3) { animation: gridPopIn 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.58s both; }
+
+/* ── Footer note ──────────────────────────────── */
+.footerNote {
+  font-size: 12px;
+  color: rgba(219,185,143,0.50);
+  text-align: center;
+  position: relative;
+  z-index: 1;
 }
