@@ -1,51 +1,55 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
 
 :root {
-  /* ── Brand palette (warm neutral) ──────────────────────── */
-  --brand-brown:      #96351E;
-  --brand-brown-dark: #7A2C14;
-  --brand-beige:      #DBB98F;
-  --brand-cream:      #F0DFC0;
+  /* ── Brand palette (Yellow on Charcoal) ──────────────────────── */
+  --brand-yellow:       #F9D342;
+  --brand-yellow-dark:  #e0b925;
+  --brand-charcoal:     #292826;
+  --brand-charcoal-dark:#1e1d1b;
+  
+  /* Map legacy variable names to new colors so existing components don't break */
+  --brand-brown:        var(--brand-yellow);
+  --brand-brown-dark:   var(--brand-yellow-dark);
+  --brand-beige:        var(--brand-charcoal);
+  --brand-cream:        var(--brand-charcoal);
 
-  /* Role accent colours — all warm, no blue */
-  --color-mint:        #2eaf53;
-  --color-mint-bg:     rgba(46,175,83,0.08);
-  --color-mint-border: rgba(46,175,83,0.25);
+  /* Role accent colours — shifted to match dark theme */
+  --color-mint:         #4ade80;
+  --color-mint-bg:      rgba(74, 222, 128, 0.15);
+  --color-mint-border:  rgba(74, 222, 128, 0.3);
 
-  --color-amber:        #C47B2B;
-  --color-amber-bg:     rgba(196,123,43,0.08);
-  --color-amber-border: rgba(196,123,43,0.25);
+  --color-amber:        #fbbf24;
+  --color-amber-bg:     rgba(251, 191, 36, 0.15);
+  --color-amber-border: rgba(251, 191, 36, 0.3);
 
-  --color-indigo:        #7C5CBF;
-  --color-indigo-bg:     rgba(124,92,191,0.08);
-  --color-indigo-border: rgba(124,92,191,0.25);
+  --color-indigo:       #818cf8;
+  --color-indigo-bg:    rgba(129, 140, 248, 0.15);
+  --color-indigo-border:rgba(129, 140, 248, 0.3);
 
-  --color-coral:        #e5484d;
-  --color-coral-bg:     rgba(229,72,77,0.08);
-  --color-coral-border: rgba(229,72,77,0.25);
+  --color-coral:        #fb7185;
+  --color-coral-bg:     rgba(251, 113, 133, 0.15);
+  --color-coral-border: rgba(251, 113, 133, 0.3);
 
-  /* Remove old cyan — replaced by brand brown accent */
-  --color-cyan:        var(--brand-brown);
-  --color-cyan-bg:     rgba(150,53,30,0.07);
-  --color-cyan-border: rgba(150,53,30,0.18);
+  /* Cyan replaced by brand yellow */
+  --color-cyan:         var(--brand-yellow);
+  --color-cyan-bg:      rgba(249, 211, 66, 0.1);
+  --color-cyan-border:  rgba(249, 211, 66, 0.25);
 
-  /* ── Premium glass tokens ──────────────────────────────── */
-  --glass-bg:           rgba(255,255,255,0.62);
-  --glass-bg-hover:     rgba(255,255,255,0.78);
-  --glass-border:       rgba(255,255,255,0.55);
-  --glass-border-subtle:rgba(255,255,255,0.35);
+  /* ── Premium glass tokens (Dark Mode optimized) ────────── */
+  --glass-bg:           rgba(255, 255, 255, 0.05);
+  --glass-bg-hover:     rgba(255, 255, 255, 0.08);
+  --glass-border:       rgba(255, 255, 255, 0.1);
+  --glass-border-subtle:rgba(255, 255, 255, 0.05);
   --glass-blur:         blur(40px) saturate(200%) brightness(1.02);
-  --glass-shadow:       0 8px 32px -4px rgba(100,50,20,0.12),
-                        0 2px 8px  -2px rgba(100,50,20,0.06),
-                        inset 0 1px 1px rgba(255,255,255,0.75);
-  --glass-shadow-hover: 0 20px 48px -8px rgba(100,50,20,0.18),
-                        0 4px 16px -4px rgba(100,50,20,0.10),
-                        inset 0 1px 1.5px rgba(255,255,255,0.90);
+  --glass-shadow:       0 8px 32px -4px rgba(0, 0, 0, 0.5),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  --glass-shadow-hover: 0 20px 48px -8px rgba(0, 0, 0, 0.7),
+                        inset 0 1px 1.5px rgba(255, 255, 255, 0.1);
 
   /* ── Text ──────────────────────────────────────────────── */
-  --color-text-main:  #96351E;
-  --color-text-muted: rgba(150,53,30,0.70);
-  --color-text-light: rgba(150,53,30,0.50);
+  --color-text-main:  #FFFFFF;
+  --color-text-muted: rgba(255, 255, 255, 0.7);
+  --color-text-light: rgba(255, 255, 255, 0.5);
 
   /* ── Radii ─────────────────────────────────────────────── */
   --radius-sm:   10px;
@@ -61,24 +65,10 @@
   --transition-normal: 0.28s var(--spring-smooth);
 }
 
-/* ── Dark / Midnight Glass ──────────────────────────────── */
+/* ── Dark / Midnight Glass (Matches root now) ────────────── */
 [data-theme="dark"] {
-  --glass-bg:           rgba(90,28,10,0.55);
-  --glass-bg-hover:     rgba(110,38,16,0.72);
-  --glass-border:       rgba(240,223,192,0.14);
-  --glass-border-subtle:rgba(240,223,192,0.08);
-  --glass-shadow:       0 8px 32px -4px rgba(0,0,0,0.38),
-                        inset 0 1px 1px rgba(240,223,192,0.12);
-  --glass-shadow-hover: 0 20px 48px -8px rgba(0,0,0,0.55),
-                        inset 0 1px 1.5px rgba(240,223,192,0.18);
-  --color-text-main:  #F0DFC0;
-  --color-text-muted: rgba(240,223,192,0.70);
-  --color-text-light: rgba(240,223,192,0.45);
-  --color-mint-bg:    rgba(46,175,83,0.15);
-  --color-cyan-bg:    rgba(240,223,192,0.08);
-  --color-cyan-border:rgba(240,223,192,0.18);
-  --color-indigo-bg:  rgba(124,92,191,0.18);
-  --color-amber-bg:   rgba(196,123,43,0.18);
+  --glass-bg:           rgba(255, 255, 255, 0.05);
+  --glass-bg-hover:     rgba(255, 255, 255, 0.08);
 }
 
 /* ── Reset ──────────────────────────────────────────────── */
@@ -91,24 +81,17 @@ html, body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--brand-charcoal);
   transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 body {
-  /* Subtle noise-on-gradient background for depth */
-  background-color: #D4AD82;
+  background-color: var(--brand-charcoal);
   background-image:
-    radial-gradient(ellipse 80% 50% at 20% 10%,  rgba(240,223,192,0.50) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 90%,  rgba(150,53,30,0.18)   0%, transparent 60%),
-    radial-gradient(ellipse 50% 60% at 50% 50%,  rgba(255,255,255,0.12) 0%, transparent 80%);
+    radial-gradient(ellipse 80% 50% at 20% 10%,  rgba(249, 211, 66, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 90%,  rgba(255, 255, 255, 0.02)  0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 50% 50%,  rgba(249, 211, 66, 0.03) 0%, transparent 80%);
   position: relative;
-}
-
-[data-theme="dark"] body {
-  background-color: #5A1C0A;
-  background-image:
-    radial-gradient(ellipse 80% 50% at 20% 10%, rgba(150,53,30,0.35) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 90%, rgba(0,0,0,0.35)    0%, transparent 60%);
 }
 
 /* ── Animated ambient orbs ──────────────────────────────── */
@@ -123,13 +106,13 @@ body::before, body::after {
 body::before {
   width: 600px; height: 600px;
   top: -200px; left: -150px;
-  background: radial-gradient(circle, rgba(255,255,255,0.22) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(249, 211, 66, 0.04) 0%, transparent 70%);
   animation-duration: 18s;
 }
 body::after {
   width: 500px; height: 500px;
   bottom: -150px; right: -100px;
-  background: radial-gradient(circle, rgba(150,53,30,0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
   animation-duration: 24s;
   animation-direction: reverse;
 }
@@ -154,22 +137,21 @@ body::after {
   overflow:            hidden;
 }
 
-/* Specular sheen */
 .glass-panel::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
   background: linear-gradient(135deg,
-    rgba(255,255,255,0.28) 0%,
-    rgba(255,255,255,0.05) 40%,
+    rgba(255,255,255,0.08) 0%,
+    rgba(255,255,255,0.01) 40%,
     transparent 100%);
   pointer-events: none;
 }
 
 .glass-panel:hover {
   background:    var(--glass-bg-hover);
-  border-color:  rgba(255,255,255,0.70);
+  border-color:  rgba(255,255,255,0.2);
   box-shadow:    var(--glass-shadow-hover);
   transform:     translateY(-2px);
 }

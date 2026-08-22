@@ -122,13 +122,13 @@ export default function AboutPage() {
           <RevealSection className={styles.featureVisual}>
             <div className={styles.abstractGraphic}>
                <div className={styles.floatCard} style={{ top: '10%', left: '10%', animationDelay: '0s' }}>
-                 <Zap size={16} color="#96351E" /> Priority: Critical
+                 <Zap size={16} color="#F9D342" /> Priority: Critical
                </div>
                <div className={styles.floatCard} style={{ top: '45%', right: '5%', animationDelay: '1s' }}>
-                 <Wrench size={16} color="#96351E" /> Electrical Team
+                 <Wrench size={16} color="#F9D342" /> Electrical Team
                </div>
                <div className={styles.floatCard} style={{ bottom: '15%', left: '20%', animationDelay: '2s' }}>
-                 <SearchCheck size={16} color="#96351E" /> Verified
+                 <SearchCheck size={16} color="#F9D342" /> Verified
                </div>
             </div>
           </RevealSection>
@@ -150,13 +150,15 @@ export default function AboutPage() {
                     <span className={styles.stepLabel}>{s.label}</span>
                   </div>
                   {i < steps.length - 1 && (
-                    <div
-                      className={styles.stepLine}
-                      style={{
-                        opacity: activeStep > i ? 1 : 0.15,
-                        transform: `scaleX(${activeStep > i ? 1 : 0})`,
-                      }}
-                    />
+                    <div className={styles.stepLineWrapper}>
+                      <div
+                        className={styles.stepLine}
+                        style={{
+                          opacity: activeStep > i ? 1 : 0.15,
+                          transform: `scaleX(${activeStep > i ? 1 : 0})`,
+                        }}
+                      />
+                    </div>
                   )}
                 </React.Fragment>
               ))}

@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  overflow: hidden; /* contain hero orb */
+  overflow: hidden;
   padding-bottom: 80px;
 }
 
@@ -42,22 +42,22 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: var(--brand-brown);
-  color: #F0DFC0;
+  background: var(--brand-yellow);
+  color: var(--brand-charcoal);
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 800;
   padding: 16px 32px;
   border-radius: 9999px;
   border: none;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
   font-family: inherit;
-  box-shadow: 0 4px 14px rgba(150,53,30,0.25);
+  box-shadow: 0 4px 14px rgba(249,211,66,0.25);
 }
 .primaryBtn:hover {
-  background: var(--brand-brown-dark);
+  background: var(--brand-yellow-dark);
   transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 10px 24px rgba(150,53,30,0.35);
+  box-shadow: 0 10px 24px rgba(249,211,66,0.35);
 }
 
 /* ── HERO SECTION (Editorial) ────────────────────────────── */
@@ -75,7 +75,7 @@
   top: 10%; right: -10%;
   width: 600px; height: 600px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(150,53,30,0.06) 0%, transparent 60%);
+  background: radial-gradient(circle, rgba(249,211,66,0.1) 0%, transparent 60%);
   pointer-events: none;
   z-index: -1;
   animation: heroOrbFloat 12s ease-in-out infinite alternate;
@@ -97,20 +97,20 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(150,53,30,0.05);
-  border: 1px solid rgba(150,53,30,0.1);
+  background: rgba(249,211,66,0.1);
+  border: 1px solid rgba(249,211,66,0.2);
   border-radius: 9999px;
   padding: 6px 16px;
   font-size: 13px;
-  font-weight: 700;
-  color: var(--brand-brown);
+  font-weight: 800;
+  color: var(--brand-yellow);
   width: fit-content;
 }
 
 .heroBadgeDot {
   width: 6px; height: 6px;
   border-radius: 50%;
-  background: var(--brand-brown);
+  background: var(--brand-yellow);
   animation: pulseDark 2s ease-in-out infinite;
 }
 
@@ -129,7 +129,7 @@
 }
 
 .heroTitleAccent {
-  color: var(--brand-brown);
+  color: var(--brand-yellow);
 }
 
 .heroSub {
@@ -162,8 +162,8 @@
 .featureIcon {
   width: 56px; height: 56px;
   border-radius: 16px;
-  background: rgba(150,53,30,0.08);
-  color: var(--brand-brown);
+  background: rgba(249,211,66,0.15);
+  color: var(--brand-yellow);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -201,8 +201,8 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1;
-  background: radial-gradient(circle at center, rgba(150,53,30,0.03) 0%, transparent 70%);
-  border: 1px solid rgba(150,53,30,0.05);
+  background: radial-gradient(circle at center, rgba(249,211,66,0.05) 0%, transparent 70%);
+  border: 1px solid rgba(249,211,66,0.1);
   border-radius: 40px;
 }
 
@@ -211,7 +211,7 @@
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.2);
   padding: 12px 20px;
   border-radius: 16px;
   display: flex;
@@ -244,7 +244,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: relative;
+  flex-wrap: nowrap;
 }
 
 .stepItem {
@@ -254,8 +254,8 @@
   gap: 16px;
   opacity: 0.3;
   transition: opacity 0.5s ease;
-  position: relative;
   z-index: 2;
+  flex-shrink: 0;
 }
 
 .stepActive {
@@ -265,42 +265,44 @@
 .stepCircle {
   width: 64px; height: 64px;
   border-radius: 50%;
-  background: var(--page-bg);
-  border: 2px solid rgba(150,53,30,0.15);
+  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(249,211,66,0.2);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-text-muted);
+  color: rgba(255,255,255,0.5);
   transition: all 0.5s cubic-bezier(0.34,1.56,0.64,1);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .stepActive .stepCircle {
-  background: var(--brand-brown);
-  border-color: var(--brand-brown);
-  color: #F0DFC0;
-  box-shadow: 0 12px 24px rgba(150,53,30,0.25);
+  background: var(--brand-yellow);
+  border-color: var(--brand-yellow);
+  color: var(--brand-charcoal);
+  box-shadow: 0 12px 24px rgba(249,211,66,0.3);
   transform: scale(1.1);
+}
+
+.stepLineWrapper {
+  flex: 1;
+  height: 2px;
+  background: rgba(255,255,255,0.1);
+  margin: 0 16px;
+  margin-top: -32px;
+  position: relative;
+  border-radius: 2px;
+  overflow: hidden;
 }
 
 .stepLine {
   position: absolute;
-  top: 32px; /* half of circle height */
+  top: 0;
   left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--brand-brown);
-  z-index: 1;
+  height: 100%;
+  width: 100%;
+  background: var(--brand-yellow);
   transform-origin: left center;
   transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.16,1,0.3,1);
-}
-
-/* Override line per step to connect exactly from one to next */
-.lifecycleContainer .stepLine {
-  position: static;
-  flex: 1;
-  margin: 0 16px;
-  margin-top: -32px; /* align with centers */
 }
 
 .stepLabel {
@@ -315,12 +317,14 @@
     align-items: flex-start;
     gap: 40px;
   }
-  .lifecycleContainer .stepLine {
+  .stepLineWrapper {
     position: absolute;
     left: 31px;
     top: 0; bottom: 0;
-    width: 2px; height: 100%;
+    width: 2px; height: auto;
     margin: 0;
+  }
+  .stepLine {
     transform-origin: top center;
   }
   .stepItem { flex-direction: row; }
@@ -329,9 +333,9 @@
 /* ── ROLES GRID SECTION ──────────────────────────────────── */
 .rolesSection {
   padding: 120px 40px;
-  background: rgba(150,53,30,0.02);
-  border-top: 1px solid rgba(150,53,30,0.05);
-  border-bottom: 1px solid rgba(150,53,30,0.05);
+  background: rgba(255,255,255,0.02);
+  border-top: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .rolesHeader {
@@ -355,22 +359,23 @@
 .roleBlock {
   padding: 40px;
   border-radius: 24px;
-  background: var(--page-bg);
-  border: 1px solid rgba(150,53,30,0.08);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.03);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
   transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
 }
 
 .roleBlock:hover {
   transform: translateY(-8px);
-  box-shadow: 0 16px 48px rgba(150,53,30,0.08);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+  border-color: rgba(249,211,66,0.3);
 }
 
 .roleBlockIcon {
   width: 48px; height: 48px;
   border-radius: 12px;
-  background: rgba(150,53,30,0.08);
-  color: var(--brand-brown);
+  background: rgba(249,211,66,0.1);
+  color: var(--brand-yellow);
   display: flex;
   align-items: center;
   justify-content: center;
