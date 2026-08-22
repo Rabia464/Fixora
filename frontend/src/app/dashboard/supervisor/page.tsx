@@ -238,17 +238,17 @@ export default function SupervisorDashboard() {
             <h3 style={{ fontSize: '18px', fontWeight: 800 }}>Hostel Distribution</h3>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.5)', borderRadius: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
                 <span style={{ fontWeight: 700 }}>Hostel A (Boys)</span>
                 <Badge status="danger">14 Active</Badge>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.5)', borderRadius: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
                 <span style={{ fontWeight: 700 }}>Hostel B (Boys)</span>
                 <Badge status="warning">8 Active</Badge>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.5)', borderRadius: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
                 <span style={{ fontWeight: 700 }}>Hostel C (Girls)</span>
                 <Badge status="success">3 Active</Badge>
               </div>

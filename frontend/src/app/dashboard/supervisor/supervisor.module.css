@@ -47,9 +47,9 @@
 }
 
 .toggleBtn.active {
-  background: rgba(255, 255, 255, 0.8);
-  color: var(--color-text-main);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--brand-yellow);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .controlsBar {
@@ -64,7 +64,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   padding: 10px 16px;
@@ -96,7 +96,7 @@
   border-radius: var(--radius-full);
   font-size: 12px;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--glass-border);
   color: var(--color-text-muted);
   cursor: pointer;
@@ -105,8 +105,8 @@
 }
 
 .chip:hover {
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--color-text-main);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--brand-yellow);
 }
 
 .chip.active {
@@ -163,7 +163,7 @@
 }
 
 .aiPredictionBox {
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   padding: 14px;
@@ -177,7 +177,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  color: var(--color-cyan);
+  color: var(--brand-yellow);
   display: flex;
   align-items: center;
   gap: 6px;
