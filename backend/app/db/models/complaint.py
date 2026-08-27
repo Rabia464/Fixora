@@ -1,7 +1,8 @@
+from __future__ import annotations
 import uuid
 from sqlalchemy import String, Text, Boolean, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from typing import List
+from typing import List, Optional
 
 from app.db.session import Base
 from app.db.models.mixins import UUIDMixin, TimestampMixin
@@ -21,19 +22,19 @@ class Complaint(Base, UUIDMixin, TimestampMixin):
     status: Mapped[ComplaintStatus] = mapped_column(String(20), nullable=False, index=True)
 
     # AI Recommendation Fields (Nullable if AI fails)
-    ai_category: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    ai_priority: Mapped[ComplaintPriority | None] = mapped_column(String(50), nullable=True)
-    ai_department: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    ai_category: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    ai_priority: Mapped[Optional[ComplaintPriority]] = mapped_column(String(50), nullable=True)
+    ai_department: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
     # Supervisor Review Fields
     supervisor_override: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    overridden_category: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    overridden_priority: Mapped[ComplaintPriority | None] = mapped_column(String(50), nullable=True)
-    overridden_department: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    overridden_category: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    overridden_priority: Mapped[Optional[ComplaintPriority]] = mapped_column(String(50), nullable=True)
+    overridden_department: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
     # Foreign Keys
     created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
-    supervisor_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
+    supervisor_id: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
 
     # Relationships
     author: Mapped["User"] = relationship("User", foreign_keys=[created_by], back_populates="authored_complaints")

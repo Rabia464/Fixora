@@ -1,3 +1,4 @@
+from typing import Optional
 import uuid
 from datetime import datetime
 from sqlalchemy import String, ForeignKey, DateTime, text, Index
@@ -17,7 +18,7 @@ class AuditLog(Base, UUIDMixin):
 
     action: Mapped[AuditAction] = mapped_column(String(100), nullable=False)
     performed_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
-    complaint_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("complaints.id"), nullable=True, index=True)
+    complaint_id: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey("complaints.id"), nullable=True, index=True)
     details: Mapped[dict] = mapped_column(JSONB, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(

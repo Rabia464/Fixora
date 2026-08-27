@@ -1,7 +1,8 @@
+from __future__ import annotations
 import uuid
 from sqlalchemy import String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from typing import List
+from typing import List, Optional
 
 from app.db.session import Base
 from app.db.models.mixins import UUIDMixin, TimestampMixin
@@ -15,7 +16,7 @@ class User(Base, UUIDMixin, TimestampMixin):
 
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    hostel: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    hostel: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     role_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("roles.id"), nullable=False, index=True)
 
     # Relationships
