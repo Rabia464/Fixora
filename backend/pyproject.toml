@@ -4,6 +4,9 @@ addopts = "-ra -q --strict-markers"
 testpaths = [
     "tests",
 ]
+pythonpath = [
+    ".",
+]
 asyncio_mode = "auto"
 
 [tool.ruff]
