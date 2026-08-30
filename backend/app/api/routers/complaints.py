@@ -5,10 +5,10 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import (
-    get_current_user,
+    get_current_maintenance,
     get_current_student,
     get_current_supervisor,
-    get_current_maintenance,
+    get_current_user,
 )
 from app.core.exceptions import ForbiddenException
 from app.db.models.user import User
@@ -18,14 +18,15 @@ from app.domain.enums.role import UserRole
 from app.domain.schemas.complaint import (
     ComplaintCreate,
     ComplaintResponse,
-    SupervisorReviewRequest,
     MaintenanceProgressRequest,
     MaintenanceResolveRequest,
     StudentReopenRequest,
+    SupervisorReviewRequest,
 )
 from app.services.complaint import complaint_service
 
 router = APIRouter(prefix="", tags=["Complaints"])
+
 
 @router.post("/complaints", response_model=ComplaintResponse, status_code=status.HTTP_201_CREATED)
 async def create_complaint(
@@ -51,9 +52,13 @@ async def get_complaints(
     elif current_user.role.name == UserRole.HOSTEL_SUPERVISOR.value:
         # Default to OPEN if not specified, since service method requires a status
         query_status = status_filter if status_filter else ComplaintStatus.OPEN
-        return await complaint_service.get_supervisor_dashboard(db, current_user.id, query_status, skip, limit)
+        return await complaint_service.get_supervisor_dashboard(
+            db, current_user.id, query_status, skip, limit
+        )
     else:
-        raise ForbiddenException("Maintenance users should use the /maintenance/complaints endpoint.")
+        raise ForbiddenException(
+            "Maintenance users should use the /maintenance/complaints endpoint."
+        )
 
 
 @router.get("/maintenance/complaints", response_model=List[ComplaintResponse])

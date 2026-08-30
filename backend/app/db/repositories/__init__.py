@@ -1,15 +1,20 @@
+from .audit_log import AuditLogRepository, audit_log_repo
 from .base import BaseRepository
-from .role import role_repo, RoleRepository
-from .user import user_repo, UserRepository
-from .complaint import complaint_repo, ComplaintRepository
-from .notification import notification_repo, NotificationRepository
-from .audit_log import audit_log_repo, AuditLogRepository
+from .complaint import ComplaintRepository, complaint_repo
+from .notification import NotificationRepository, notification_repo
+from .role import RoleRepository, role_repo
+from .user import UserRepository, user_repo
 
 __all__ = [
     "BaseRepository",
-    "role_repo", "RoleRepository",
-    "user_repo", "UserRepository",
-    "complaint_repo", "ComplaintRepository",
-    "notification_repo", "NotificationRepository",
-    "audit_log_repo", "AuditLogRepository",
+    "role_repo",
+    "RoleRepository",
+    "user_repo",
+    "UserRepository",
+    "complaint_repo",
+    "ComplaintRepository",
+    "notification_repo",
+    "NotificationRepository",
+    "audit_log_repo",
+    "AuditLogRepository",
 ]

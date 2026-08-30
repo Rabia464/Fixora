@@ -11,10 +11,15 @@ class AIService:
         try:
             text = f"{title} {description}".lower()
 
-            if any(kw in text for kw in ("leak", "pipe", "water", "drain", "tap", "toilet", "washroom")):
+            if any(
+                kw in text for kw in ("leak", "pipe", "water", "drain", "tap", "toilet", "washroom")
+            ):
                 category = "Plumbing"
                 department = "Plumbing"
-            elif any(kw in text for kw in ("power", "electric", "light", "socket", "wire", "fan", "short circuit")):
+            elif any(
+                kw in text
+                for kw in ("power", "electric", "light", "socket", "wire", "fan", "short circuit")
+            ):
                 category = "Electrical"
                 department = "Electrical"
             elif any(kw in text for kw in ("door", "window", "bed", "chair", "furniture", "lock")):
@@ -27,7 +32,9 @@ class AIService:
                 category = "General"
                 department = "Maintenance"
 
-            if any(kw in text for kw in ("fire", "gas", "spark", "flood", "emergency", "short circuit")):
+            if any(
+                kw in text for kw in ("fire", "gas", "spark", "flood", "emergency", "short circuit")
+            ):
                 priority = ComplaintPriority.CRITICAL
             elif any(kw in text for kw in ("leak", "no water", "no power", "broken", "unsafe")):
                 priority = ComplaintPriority.HIGH

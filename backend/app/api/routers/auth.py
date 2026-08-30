@@ -7,13 +7,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_current_user
 from app.core.config import settings
+from app.core.exceptions import UnauthorizedException
 from app.core.security import create_access_token
 from app.db.models.user import User
 from app.db.repositories.user import user_repo
 from app.db.session import get_db
 from app.domain.schemas.auth import LoginRequest, Token
 from app.domain.schemas.user import UserResponse
-from app.core.exceptions import UnauthorizedException
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 

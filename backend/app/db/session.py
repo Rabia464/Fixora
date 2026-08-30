@@ -1,6 +1,8 @@
 from collections.abc import AsyncGenerator
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
+
 from app.core.config import settings
 
 # Create the async engine
@@ -20,9 +22,11 @@ AsyncSessionLocal = async_sessionmaker(
     autoflush=False,
 )
 
+
 # Base class for SQLAlchemy ORM models (SQLAlchemy 2.0 style)
 class Base(DeclarativeBase):
     pass
+
 
 # Dependency to yield database sessions
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -32,4 +36,3 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
     async with AsyncSessionLocal() as session:
         yield session
-

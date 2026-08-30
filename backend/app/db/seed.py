@@ -1,12 +1,12 @@
 import asyncio
 import logging
-import uuid
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.models import AuditLog, Complaint, Role, User
 from app.db.session import AsyncSessionLocal
-from app.db.models import Role, User, Complaint, AuditLog
-from app.domain.enums import UserRole, ComplaintStatus, ComplaintPriority, AuditAction
+from app.domain.enums import AuditAction, ComplaintPriority, ComplaintStatus, UserRole
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -32,6 +32,7 @@ SEED_USERS = [
     },
 ]
 
+
 async def seed_roles(session: AsyncSession) -> None:
     default_roles = [UserRole.STUDENT, UserRole.HOSTEL_SUPERVISOR, UserRole.MAINTENANCE_OFFICE]
 
@@ -48,13 +49,16 @@ async def seed_roles(session: AsyncSession) -> None:
     await session.commit()
     logger.info("Role seeding complete.")
 
+
 async def seed_users(session: AsyncSession) -> dict[str, User]:
     user_map = {}
     for entry in SEED_USERS:
         result = await session.execute(select(User).where(User.email == entry["email"]))
         user = result.scalars().first()
         if not user:
-            role_result = await session.execute(select(Role).where(Role.name == entry["role"].value))
+            role_result = await session.execute(
+                select(Role).where(Role.name == entry["role"].value)
+            )
             role = role_result.scalars().first()
             if not role:
                 raise RuntimeError(f"Role '{entry['role'].value}' not found.")
@@ -73,6 +77,7 @@ async def seed_users(session: AsyncSession) -> dict[str, User]:
     await session.commit()
     logger.info("User seeding complete.")
     return user_map
+
 
 async def seed_sample_complaints(session: AsyncSession, user_map: dict[str, User]) -> None:
     student = user_map.get("student@giki.edu.pk")
@@ -165,7 +170,11 @@ async def seed_sample_complaints(session: AsyncSession, user_map: dict[str, User
             )
         )
 
-        if item["status"] in [ComplaintStatus.FORWARDED, ComplaintStatus.IN_PROGRESS, ComplaintStatus.RESOLVED]:
+        if item["status"] in [
+            ComplaintStatus.FORWARDED,
+            ComplaintStatus.IN_PROGRESS,
+            ComplaintStatus.RESOLVED,
+        ]:
             session.add(
                 AuditLog(
                     action=AuditAction.FORWARDED_TO_MAINTENANCE,
@@ -191,12 +200,16 @@ async def seed_sample_complaints(session: AsyncSession, user_map: dict[str, User
                     action=AuditAction.STATUS_UPDATED,
                     performed_by=maintenance.id,
                     complaint_id=complaint.id,
-                    details={"status": "Resolved", "resolution_note": "Replaced window latch and tested"},
+                    details={
+                        "status": "Resolved",
+                        "resolution_note": "Replaced window latch and tested",
+                    },
                 )
             )
 
     await session.commit()
     logger.info("Sample complaints and audit logs seeded successfully.")
+
 
 async def main() -> None:
     logger.info("Starting database seeding...")
@@ -205,6 +218,7 @@ async def main() -> None:
         user_map = await seed_users(session)
         await seed_sample_complaints(session, user_map)
     logger.info("Database seeding finished successfully.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

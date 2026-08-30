@@ -1,6 +1,8 @@
 from typing import Any, List, Optional
-from pydantic import PostgresDsn, field_validator, ValidationInfo, ConfigDict
+
+from pydantic import ConfigDict, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings
+
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Fixora API"
@@ -40,11 +42,7 @@ class Settings(BaseSettings):
         db = data.get("POSTGRES_DB", "fixora")
         return f"postgresql+asyncpg://{user}:{password}@{server}:{port}/{db}"
 
-    model_config = ConfigDict(
-        env_file=".env",
-        case_sensitive=True,
-        extra="ignore"
-    )
+    model_config = ConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
+
 
 settings = Settings()
-

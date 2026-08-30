@@ -1,16 +1,19 @@
 import uuid
 from typing import List
+
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.db.models.audit_log import AuditLog
 from app.db.repositories.base import BaseRepository
+
 
 class AuditLogRepository(BaseRepository[AuditLog]):
     """
     Handles database operations strictly for the AuditLog entity.
     """
+
     def __init__(self):
         super().__init__(AuditLog)
 
@@ -26,5 +29,6 @@ class AuditLogRepository(BaseRepository[AuditLog]):
             .order_by(AuditLog.created_at.asc())
         )
         return list(result.scalars().all())
+
 
 audit_log_repo = AuditLogRepository()

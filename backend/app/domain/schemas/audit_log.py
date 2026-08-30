@@ -1,14 +1,17 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Any, Dict, Optional
-from datetime import datetime
 import uuid
+from datetime import datetime
+from typing import Any, Dict, Optional
+
+from pydantic import BaseModel, ConfigDict
 
 from app.domain.enums import AuditAction
+
 
 class AuditLogResponse(BaseModel):
     """
     Schema for returning audit trail records with actor details.
     """
+
     id: uuid.UUID
     action: AuditAction
     performed_by: uuid.UUID
@@ -19,4 +22,3 @@ class AuditLogResponse(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
-

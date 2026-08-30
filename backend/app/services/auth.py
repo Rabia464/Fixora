@@ -1,4 +1,5 @@
 import uuid
+
 from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,7 +19,7 @@ class AuthService:
         try:
             payload = decode_access_token(token)
         except JWTError:
-            raise UnauthorizedException("Invalid or expired token.")
+            raise UnauthorizedException("Invalid or expired token.") from None
 
         if not payload.sub:
             raise UnauthorizedException("Invalid token payload.")
@@ -26,7 +27,7 @@ class AuthService:
         try:
             user_id = uuid.UUID(payload.sub)
         except ValueError:
-            raise UnauthorizedException("Invalid token payload.")
+            raise UnauthorizedException("Invalid token payload.") from None
 
         user = await user_repo.get_with_role(db, user_id)
         if not user:

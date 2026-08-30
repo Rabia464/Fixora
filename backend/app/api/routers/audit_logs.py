@@ -1,5 +1,6 @@
 import uuid
 from typing import List
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,6 +11,7 @@ from app.domain.schemas.audit_log import AuditLogResponse
 from app.services.audit_log import audit_log_service
 
 router = APIRouter(prefix="/complaints", tags=["Audit Logs"])
+
 
 @router.get("/{id}/audit_logs", response_model=List[AuditLogResponse])
 async def get_complaint_audit_logs(
@@ -35,4 +37,3 @@ async def get_complaint_audit_logs(
         )
         for log in logs
     ]
-

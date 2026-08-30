@@ -1,9 +1,11 @@
 from enum import Enum
 
+
 class NotificationType(str, Enum):
     """
     Defines the categories of in-app notifications sent to users.
     """
+
     COMPLAINT_CREATED = "ComplaintCreated"
     STATUS_UPDATED = "StatusUpdated"
     MAINTENANCE_STARTED = "MaintenanceStarted"
@@ -11,10 +13,12 @@ class NotificationType(str, Enum):
     COMPLAINT_REOPENED = "ComplaintReopened"
     COMPLAINT_CLOSED = "ComplaintClosed"
 
+
 class AuditAction(str, Enum):
     """
     Defines the types of actions logged in the immutable audit trail.
     """
+
     TICKET_CREATED = "TicketCreated"
     SUPERVISOR_REVIEWED = "SupervisorReviewed"
     SUPERVISOR_OVERRIDE = "SupervisorOverride"

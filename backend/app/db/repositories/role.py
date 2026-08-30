@@ -1,14 +1,17 @@
 from typing import Optional
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.role import Role
 from app.db.repositories.base import BaseRepository
 
+
 class RoleRepository(BaseRepository[Role]):
     """
     Handles database operations strictly for the Role entity.
     """
+
     def __init__(self):
         super().__init__(Role)
 
@@ -19,5 +22,6 @@ class RoleRepository(BaseRepository[Role]):
         """
         result = await db.execute(select(Role).where(Role.name == name))
         return result.scalars().first()
+
 
 role_repo = RoleRepository()

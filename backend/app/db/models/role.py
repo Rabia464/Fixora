@@ -1,14 +1,22 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, List
+
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from typing import List
 
+from app.db.models.mixins import TimestampMixin, UUIDMixin
 from app.db.session import Base
-from app.db.models.mixins import UUIDMixin, TimestampMixin
+
+if TYPE_CHECKING:
+    from app.db.models.user import User
+
 
 class Role(Base, UUIDMixin, TimestampMixin):
     """
     Stores the distinct role names used for RBAC.
     """
+
     __tablename__ = "roles"
 
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)

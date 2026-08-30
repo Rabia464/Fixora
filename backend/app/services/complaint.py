@@ -1,31 +1,33 @@
 import uuid
 from typing import List
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import (
-    UnauthorizedException,
+    BusinessLogicException,
     ForbiddenException,
     NotFoundException,
-    BusinessLogicException,
+    UnauthorizedException,
 )
 from app.db.models.complaint import Complaint
 from app.db.models.user import User
-from app.db.repositories.user import user_repo
 from app.db.repositories.complaint import complaint_repo
-from app.domain.enums.role import UserRole
+from app.db.repositories.user import user_repo
 from app.domain.enums.complaint import ComplaintStatus
 from app.domain.enums.events import AuditAction, NotificationType
+from app.domain.enums.role import UserRole
 from app.domain.schemas.complaint import (
     ComplaintCreate,
     ComplaintResponse,
-    SupervisorReviewRequest,
     MaintenanceProgressRequest,
     MaintenanceResolveRequest,
     StudentReopenRequest,
+    SupervisorReviewRequest,
 )
 from app.services.ai import ai_service
 from app.services.audit_log import audit_log_service
 from app.services.notification import notification_service
+
 
 class ComplaintService:
     """
@@ -53,7 +55,9 @@ class ComplaintService:
 
     def _assert_complaint_owner(self, complaint: Complaint, user: User) -> None:
         if complaint.created_by != user.id:
-            raise ForbiddenException("Students can only perform this action on their own complaints.")
+            raise ForbiddenException(
+                "Students can only perform this action on their own complaints."
+            )
 
     def _assert_user_has_hostel(self, user: User, role_label: str) -> str:
         if not user.hostel:
@@ -66,9 +70,13 @@ class ComplaintService:
     def _assert_complaint_supervisor_access(self, complaint: Complaint, user: User) -> None:
         supervisor_hostel = self._assert_user_has_hostel(user, "Supervisor")
         if complaint.hostel != supervisor_hostel:
-            raise ForbiddenException("Supervisors can only access complaints belonging to their assigned hostel.")
+            raise ForbiddenException(
+                "Supervisors can only access complaints belonging to their assigned hostel."
+            )
 
-    def _assert_status(self, complaint: Complaint, allowed: List[ComplaintStatus], message: str) -> None:
+    def _assert_status(
+        self, complaint: Complaint, allowed: List[ComplaintStatus], message: str
+    ) -> None:
         if complaint.status not in allowed:
             raise BusinessLogicException(detail=message, status_code=409)
 
@@ -78,15 +86,17 @@ class ComplaintService:
             raise NotFoundException("Complaint", str(complaint_id))
         return complaint
 
-    async def get_complaint(self, db: AsyncSession, complaint_id: uuid.UUID, current_user_id: uuid.UUID) -> ComplaintResponse:
+    async def get_complaint(
+        self, db: AsyncSession, complaint_id: uuid.UUID, current_user_id: uuid.UUID
+    ) -> ComplaintResponse:
         user = await self._get_user_model(db, current_user_id)
         complaint = await complaint_repo.get_with_details(db, complaint_id)
-        
+
         if not complaint:
             raise NotFoundException("Complaint", str(complaint_id))
-            
+
         role_name = user.role.name
-        
+
         if role_name == UserRole.STUDENT.value:
             if complaint.created_by != user.id:
                 raise ForbiddenException("Students can only access their own complaints.")
@@ -94,38 +104,53 @@ class ComplaintService:
             self._assert_complaint_supervisor_access(complaint, user)
         elif role_name == UserRole.MAINTENANCE_OFFICE.value:
             allowed_maintenance_statuses = [
-                ComplaintStatus.FORWARDED, 
+                ComplaintStatus.FORWARDED,
                 ComplaintStatus.IN_PROGRESS,
                 ComplaintStatus.RESOLVED,
                 ComplaintStatus.CLOSED,
-                ComplaintStatus.REOPENED
+                ComplaintStatus.REOPENED,
             ]
             if complaint.status not in allowed_maintenance_statuses:
-                raise ForbiddenException("Maintenance users can only access complaints in the maintenance workflow.")
+                raise ForbiddenException(
+                    "Maintenance users can only access complaints in the maintenance workflow."
+                )
         else:
             raise ForbiddenException("Role not authorized to access complaints.")
-            
+
         return ComplaintResponse.model_validate(complaint)
 
-    async def get_student_dashboard(self, db: AsyncSession, student_id: uuid.UUID, skip: int = 0, limit: int = 100) -> List[ComplaintResponse]:
+    async def get_student_dashboard(
+        self, db: AsyncSession, student_id: uuid.UUID, skip: int = 0, limit: int = 100
+    ) -> List[ComplaintResponse]:
         user = await self._get_user_model(db, student_id)
         self._assert_role_student(user)
-        
+
         complaints = await complaint_repo.get_multi_by_student(db, student_id, skip, limit)
         return [ComplaintResponse.model_validate(c) for c in complaints]
 
-    async def get_supervisor_dashboard(self, db: AsyncSession, supervisor_id: uuid.UUID, status: ComplaintStatus, skip: int = 0, limit: int = 100) -> List[ComplaintResponse]:
+    async def get_supervisor_dashboard(
+        self,
+        db: AsyncSession,
+        supervisor_id: uuid.UUID,
+        status: ComplaintStatus,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> List[ComplaintResponse]:
         user = await self._get_user_model(db, supervisor_id)
         self._assert_role_supervisor(user)
         supervisor_hostel = self._assert_user_has_hostel(user, "Supervisor")
 
-        complaints = await complaint_repo.get_multi_by_hostel_and_status(db, supervisor_hostel, status, skip, limit)
+        complaints = await complaint_repo.get_multi_by_hostel_and_status(
+            db, supervisor_hostel, status, skip, limit
+        )
         return [ComplaintResponse.model_validate(c) for c in complaints]
 
-    async def get_maintenance_dashboard(self, db: AsyncSession, current_user_id: uuid.UUID, skip: int = 0, limit: int = 100) -> List[ComplaintResponse]:
+    async def get_maintenance_dashboard(
+        self, db: AsyncSession, current_user_id: uuid.UUID, skip: int = 0, limit: int = 100
+    ) -> List[ComplaintResponse]:
         user = await self._get_user_model(db, current_user_id)
         self._assert_role_maintenance(user)
-        
+
         complaints = await complaint_repo.get_forwarded_to_maintenance(db, skip, limit)
         return [ComplaintResponse.model_validate(c) for c in complaints]
 
@@ -539,5 +564,6 @@ class ComplaintService:
         except Exception:
             await db.rollback()
             raise
+
 
 complaint_service = ComplaintService()

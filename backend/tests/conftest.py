@@ -1,11 +1,14 @@
 import pytest
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
+
 from app.main import app
+
 
 # This allows async tests to use the same event loop
 @pytest.fixture(scope="session")
 def anyio_backend():
     return "asyncio"
+
 
 @pytest.fixture(scope="session")
 async def client():
@@ -13,8 +16,5 @@ async def client():
     Async test client fixture.
     Creates a single test client for the entire test session.
     """
-    async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="http://test"
-    ) as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac

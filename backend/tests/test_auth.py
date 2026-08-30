@@ -1,15 +1,15 @@
 import uuid
+from datetime import datetime, timezone
+
 import pytest
 from httpx import AsyncClient
 
-from app.db.repositories.user import user_repo
-from app.db.models.role import Role
-from app.db.models.user import User
-from app.domain.enums.role import UserRole
 from app.api.dependencies import get_current_user
+from app.db.models.role import Role
+from app.db.repositories.user import user_repo
+from app.domain.enums.role import UserRole
 from app.main import app
 
-from datetime import datetime, timezone
 
 class MockUser:
     def __init__(self, email="student@giki.edu.pk", role_name=UserRole.STUDENT.value):
@@ -22,6 +22,7 @@ class MockUser:
         now = datetime.now(timezone.utc)
         self.created_at = now
         self.updated_at = now
+
 
 @pytest.mark.asyncio
 async def test_login_success(client: AsyncClient, monkeypatch):
@@ -40,6 +41,7 @@ async def test_login_success(client: AsyncClient, monkeypatch):
     assert data["token_type"] == "Bearer"
     assert data["role"] == "Student"
 
+
 @pytest.mark.asyncio
 async def test_login_unauthorized(client: AsyncClient, monkeypatch):
     async def mock_get_by_email_none(db, email):
@@ -54,6 +56,7 @@ async def test_login_unauthorized(client: AsyncClient, monkeypatch):
     assert data["code"] == 401
     assert "not registered" in data["message"]
 
+
 @pytest.mark.asyncio
 async def test_login_validation_error(client: AsyncClient):
     response = await client.post("/api/v1/auth/login", json={"wrong_field": "value"})
@@ -62,6 +65,7 @@ async def test_login_validation_error(client: AsyncClient):
     data = response.json()
     assert data["code"] == 422
     assert "Validation Error" in data["message"]
+
 
 @pytest.mark.asyncio
 async def test_get_me_success(client: AsyncClient):

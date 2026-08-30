@@ -1,14 +1,16 @@
 import logging
+
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.api.routers import api_router
 from app.core.config import settings
 from app.core.exceptions import BusinessLogicException
-from app.api.routers import api_router
 
 logger = logging.getLogger(__name__)
+
 
 def create_app() -> FastAPI:
     """
@@ -18,7 +20,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.PROJECT_NAME,
         version=settings.VERSION,
-        openapi_url=f"{settings.API_V1_STR}/openapi.json"
+        openapi_url=f"{settings.API_V1_STR}/openapi.json",
     )
 
     # Set up CORS
@@ -79,5 +81,5 @@ def create_app() -> FastAPI:
 
     return app
 
-app = create_app()
 
+app = create_app()

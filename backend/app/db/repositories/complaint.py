@@ -1,17 +1,20 @@
 import uuid
 from typing import List, Optional
+
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.db.models.complaint import Complaint
 from app.db.repositories.base import BaseRepository
 from app.domain.enums import ComplaintStatus
 
+
 class ComplaintRepository(BaseRepository[Complaint]):
     """
     Handles database operations strictly for the Complaint entity.
     """
+
     def __init__(self):
         super().__init__(Complaint)
 
@@ -27,7 +30,9 @@ class ComplaintRepository(BaseRepository[Complaint]):
         )
         return result.scalars().first()
 
-    async def get_multi_by_student(self, db: AsyncSession, student_id: uuid.UUID, skip: int = 0, limit: int = 100) -> List[Complaint]:
+    async def get_multi_by_student(
+        self, db: AsyncSession, student_id: uuid.UUID, skip: int = 0, limit: int = 100
+    ) -> List[Complaint]:
         """
         Fetch all complaints authored by a specific student.
         Supports the student dashboard.
@@ -36,11 +41,19 @@ class ComplaintRepository(BaseRepository[Complaint]):
             select(Complaint)
             .where(Complaint.created_by == student_id)
             .order_by(Complaint.created_at.desc())
-            .offset(skip).limit(limit)
+            .offset(skip)
+            .limit(limit)
         )
         return list(result.scalars().all())
 
-    async def get_multi_by_supervisor_and_status(self, db: AsyncSession, supervisor_id: uuid.UUID, status: ComplaintStatus, skip: int = 0, limit: int = 100) -> List[Complaint]:
+    async def get_multi_by_supervisor_and_status(
+        self,
+        db: AsyncSession,
+        supervisor_id: uuid.UUID,
+        status: ComplaintStatus,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> List[Complaint]:
         """
         Fetch complaints assigned to a supervisor filtered by a specific status.
         Utilizes the composite index defined in the model for performance.
@@ -50,11 +63,19 @@ class ComplaintRepository(BaseRepository[Complaint]):
             .where(Complaint.supervisor_id == supervisor_id)
             .where(Complaint.status == status)
             .order_by(Complaint.created_at.desc())
-            .offset(skip).limit(limit)
+            .offset(skip)
+            .limit(limit)
         )
         return list(result.scalars().all())
 
-    async def get_multi_by_hostel_and_status(self, db: AsyncSession, hostel: str, status: ComplaintStatus, skip: int = 0, limit: int = 100) -> List[Complaint]:
+    async def get_multi_by_hostel_and_status(
+        self,
+        db: AsyncSession,
+        hostel: str,
+        status: ComplaintStatus,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> List[Complaint]:
         """
         Fetch complaints for a hostel filtered by status.
         Supports supervisor dashboard isolation by canonical hostel identifier.
@@ -64,11 +85,14 @@ class ComplaintRepository(BaseRepository[Complaint]):
             .where(Complaint.hostel == hostel)
             .where(Complaint.status == status)
             .order_by(Complaint.created_at.desc())
-            .offset(skip).limit(limit)
+            .offset(skip)
+            .limit(limit)
         )
         return list(result.scalars().all())
 
-    async def get_forwarded_to_maintenance(self, db: AsyncSession, skip: int = 0, limit: int = 100) -> List[Complaint]:
+    async def get_forwarded_to_maintenance(
+        self, db: AsyncSession, skip: int = 0, limit: int = 100
+    ) -> List[Complaint]:
         """
         Fetch complaints that are currently in the Maintenance workflow (Forwarded, InProgress).
         Supports the Maintenance Office dashboard.
@@ -77,8 +101,10 @@ class ComplaintRepository(BaseRepository[Complaint]):
             select(Complaint)
             .where(Complaint.status.in_([ComplaintStatus.FORWARDED, ComplaintStatus.IN_PROGRESS]))
             .order_by(Complaint.created_at.desc())
-            .offset(skip).limit(limit)
+            .offset(skip)
+            .limit(limit)
         )
         return list(result.scalars().all())
+
 
 complaint_repo = ComplaintRepository()

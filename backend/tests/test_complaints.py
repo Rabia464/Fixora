@@ -1,19 +1,21 @@
 import uuid
 from datetime import datetime, timezone
+
 import pytest
 from httpx import AsyncClient
 
-from app.main import app
 from app.api.dependencies import (
-    get_current_user,
+    get_current_maintenance,
     get_current_student,
     get_current_supervisor,
-    get_current_maintenance,
+    get_current_user,
 )
-from app.domain.enums import ComplaintStatus, ComplaintPriority, UserRole
+from app.core.exceptions import NotFoundException
+from app.domain.enums import ComplaintPriority, ComplaintStatus, UserRole
 from app.domain.schemas.complaint import ComplaintResponse
+from app.main import app
 from app.services.complaint import complaint_service
-from app.core.exceptions import NotFoundException, ForbiddenException
+
 
 class MockUser:
     def __init__(self, role_name=UserRole.STUDENT.value, email="student@giki.edu.pk"):
@@ -21,9 +23,12 @@ class MockUser:
         self.email = email
         self.full_name = "Test User"
         self.hostel = "Hostel A"
+
         class MockRole:
             name = role_name
+
         self.role = MockRole()
+
 
 def make_mock_complaint_response(
     complaint_id=None,
@@ -53,6 +58,7 @@ def make_mock_complaint_response(
         created_at=now,
         updated_at=now,
     )
+
 
 @pytest.mark.asyncio
 async def test_create_complaint(client: AsyncClient, monkeypatch):
@@ -87,6 +93,7 @@ async def test_create_complaint(client: AsyncClient, monkeypatch):
         app.dependency_overrides.pop(get_current_student, None)
         app.dependency_overrides.pop(get_current_user, None)
 
+
 @pytest.mark.asyncio
 async def test_get_complaint_not_found(client: AsyncClient, monkeypatch):
     mock_student = MockUser(role_name=UserRole.STUDENT.value)
@@ -106,6 +113,7 @@ async def test_get_complaint_not_found(client: AsyncClient, monkeypatch):
         assert "not found" in data["message"]
     finally:
         app.dependency_overrides.pop(get_current_user, None)
+
 
 @pytest.mark.asyncio
 async def test_supervisor_review(client: AsyncClient, monkeypatch):
@@ -137,6 +145,7 @@ async def test_supervisor_review(client: AsyncClient, monkeypatch):
     finally:
         app.dependency_overrides.pop(get_current_supervisor, None)
 
+
 @pytest.mark.asyncio
 async def test_forward_to_maintenance(client: AsyncClient, monkeypatch):
     mock_supervisor = MockUser(role_name=UserRole.HOSTEL_SUPERVISOR.value)
@@ -155,6 +164,7 @@ async def test_forward_to_maintenance(client: AsyncClient, monkeypatch):
         assert data["status"] == "Forwarded"
     finally:
         app.dependency_overrides.pop(get_current_supervisor, None)
+
 
 @pytest.mark.asyncio
 async def test_maintenance_resolve(client: AsyncClient, monkeypatch):
@@ -175,6 +185,7 @@ async def test_maintenance_resolve(client: AsyncClient, monkeypatch):
         assert data["status"] == "Resolved"
     finally:
         app.dependency_overrides.pop(get_current_maintenance, None)
+
 
 @pytest.mark.asyncio
 async def test_student_confirm(client: AsyncClient, monkeypatch):

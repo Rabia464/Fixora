@@ -1,11 +1,13 @@
 import uuid
 from typing import Any
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.repositories.notification import notification_repo
 from app.db.repositories.user import user_repo
 from app.domain.enums import NotificationType
 from app.domain.enums.role import UserRole
+
 
 class NotificationService:
     """
@@ -69,5 +71,6 @@ class NotificationService:
                 notification_type=notification_type,
                 payload=payload,
             )
+
 
 notification_service = NotificationService()

@@ -1,18 +1,27 @@
 from __future__ import annotations
-import uuid
-from sqlalchemy import String, Text, Boolean, ForeignKey, Index
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from typing import List, Optional
 
+import uuid
+from typing import TYPE_CHECKING, List, Optional
+
+from sqlalchemy import Boolean, ForeignKey, Index, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.db.models.mixins import TimestampMixin, UUIDMixin
 from app.db.session import Base
-from app.db.models.mixins import UUIDMixin, TimestampMixin
-from app.domain.enums import ComplaintStatus, ComplaintPriority
+from app.domain.enums import ComplaintPriority, ComplaintStatus
+
+if TYPE_CHECKING:
+    from app.db.models.audit_log import AuditLog
+    from app.db.models.notification import Notification
+    from app.db.models.user import User
+
 
 class Complaint(Base, UUIDMixin, TimestampMixin):
     """
     Core ticket entity. Tracks the lifecycle from creation to resolution.
     Includes both AI-generated fields and potential manual supervisor overrides.
     """
+
     __tablename__ = "complaints"
 
     title: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -29,17 +38,29 @@ class Complaint(Base, UUIDMixin, TimestampMixin):
     # Supervisor Review Fields
     supervisor_override: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     overridden_category: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    overridden_priority: Mapped[Optional[ComplaintPriority]] = mapped_column(String(50), nullable=True)
+    overridden_priority: Mapped[Optional[ComplaintPriority]] = mapped_column(
+        String(50), nullable=True
+    )
     overridden_department: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
     # Foreign Keys
-    created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
-    supervisor_id: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
+    created_by: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id"), nullable=False, index=True
+    )
+    supervisor_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        ForeignKey("users.id"), nullable=True, index=True
+    )
 
     # Relationships
-    author: Mapped["User"] = relationship("User", foreign_keys=[created_by], back_populates="authored_complaints")
-    supervisor: Mapped["User"] = relationship("User", foreign_keys=[supervisor_id], back_populates="supervised_complaints")
-    notifications: Mapped[List["Notification"]] = relationship("Notification", back_populates="complaint")
+    author: Mapped["User"] = relationship(
+        "User", foreign_keys=[created_by], back_populates="authored_complaints"
+    )
+    supervisor: Mapped["User"] = relationship(
+        "User", foreign_keys=[supervisor_id], back_populates="supervised_complaints"
+    )
+    notifications: Mapped[List["Notification"]] = relationship(
+        "Notification", back_populates="complaint"
+    )
     audit_logs: Mapped[List["AuditLog"]] = relationship("AuditLog", back_populates="complaint")
 
     # Composite Indexes
