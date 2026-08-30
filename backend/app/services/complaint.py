@@ -143,11 +143,7 @@ class ComplaintService:
             ai_result = ai_service.predict(data.title, data.description)
 
             supervisor = await user_repo.get_supervisor_by_hostel(db, student_hostel)
-            if not supervisor:
-                raise BusinessLogicException(
-                    detail=f"No hostel supervisor configured for {student_hostel}.",
-                    status_code=422,
-                )
+            supervisor_id = supervisor.id if supervisor else None
 
             complaint = await complaint_repo.create(
                 db,
@@ -162,7 +158,7 @@ class ComplaintService:
                     "ai_department": ai_result["department"],
                     "supervisor_override": False,
                     "created_by": user.id,
-                    "supervisor_id": supervisor.id,
+                    "supervisor_id": supervisor_id,
                 },
             )
 
@@ -181,18 +177,19 @@ class ComplaintService:
                 },
             )
 
-            await notification_service.notify_user(
-                db,
-                user_id=supervisor.id,
-                complaint_id=complaint.id,
-                notification_type=NotificationType.COMPLAINT_CREATED,
-                payload={
-                    "complaint_id": str(complaint.id),
-                    "title": complaint.title,
-                    "location": complaint.location,
-                    "hostel": student_hostel,
-                },
-            )
+            if supervisor_id:
+                await notification_service.notify_user(
+                    db,
+                    user_id=supervisor_id,
+                    complaint_id=complaint.id,
+                    notification_type=NotificationType.COMPLAINT_CREATED,
+                    payload={
+                        "complaint_id": str(complaint.id),
+                        "title": complaint.title,
+                        "location": complaint.location,
+                        "hostel": student_hostel,
+                    },
+                )
 
             await db.commit()
             return ComplaintResponse.model_validate(complaint)
@@ -449,6 +446,19 @@ class ComplaintService:
                     "status": ComplaintStatus.CLOSED.value,
                 },
             )
+
+            if complaint.supervisor_id:
+                await notification_service.notify_user(
+                    db,
+                    user_id=complaint.supervisor_id,
+                    complaint_id=complaint.id,
+                    notification_type=NotificationType.COMPLAINT_CLOSED,
+                    payload={
+                        "complaint_id": str(complaint.id),
+                        "title": complaint.title,
+                        "status": ComplaintStatus.CLOSED.value,
+                    },
+                )
 
             await db.commit()
             return ComplaintResponse.model_validate(complaint)

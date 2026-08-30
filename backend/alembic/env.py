@@ -24,7 +24,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.core.config import settings
 from app.db.session import Base
-import app.domain.models  # Ensure models are loaded
+import app.db.models  # Ensure modern mapped models are loaded
 
 target_metadata = Base.metadata
 config.set_main_option("sqlalchemy.url", str(settings.SQLALCHEMY_DATABASE_URI))

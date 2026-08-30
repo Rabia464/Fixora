@@ -7,7 +7,6 @@ from app.db.repositories.user import user_repo
 from app.domain.enums import NotificationType
 from app.domain.enums.role import UserRole
 
-
 class NotificationService:
     """
     Creates in-app notifications for complaint lifecycle events.
@@ -52,5 +51,23 @@ class NotificationService:
                 payload=payload,
             )
 
+    async def notify_supervisor_for_hostel(
+        self,
+        db: AsyncSession,
+        *,
+        hostel: str,
+        complaint_id: uuid.UUID,
+        notification_type: NotificationType,
+        payload: dict[str, Any],
+    ) -> None:
+        supervisor = await user_repo.get_supervisor_by_hostel(db, hostel)
+        if supervisor:
+            await self.notify_user(
+                db,
+                user_id=supervisor.id,
+                complaint_id=complaint_id,
+                notification_type=notification_type,
+                payload=payload,
+            )
 
 notification_service = NotificationService()

@@ -39,12 +39,11 @@ class BaseRepository(Generic[ModelType]):
 
     async def update(self, db: AsyncSession, *, db_obj: ModelType, obj_in: UpdateSchemaType | Dict[str, Any]) -> ModelType:
         """Update an existing record based on a Pydantic schema or dict."""
-        obj_data = db_obj.__dict__
         update_data = obj_in if isinstance(obj_in, dict) else obj_in.model_dump(exclude_unset=True)
         
-        for field in obj_data:
-            if field in update_data:
-                setattr(db_obj, field, update_data[field])
+        for field, value in update_data.items():
+            if hasattr(db_obj, field):
+                setattr(db_obj, field, value)
                 
         db.add(db_obj)
         await db.flush()

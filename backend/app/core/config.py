@@ -1,5 +1,5 @@
-from typing import Any, Dict, Optional
-from pydantic import PostgresDsn, validator
+from typing import Any, List, Optional
+from pydantic import PostgresDsn, field_validator, ValidationInfo, ConfigDict
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
@@ -9,31 +9,42 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     # Security
-    JWT_SECRET_KEY: str
+    JWT_SECRET_KEY: str = "fixora-secret-key-for-development-32bytes"
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+
+    # CORS
+    BACKEND_CORS_ORIGINS: List[str] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
 
     # Database setup
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_SERVER: str
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "password"
+    POSTGRES_SERVER: str = "localhost"
     POSTGRES_PORT: str = "5432"
-    POSTGRES_DB: str
-    SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
+    POSTGRES_DB: str = "fixora"
+    SQLALCHEMY_DATABASE_URI: Optional[str] = None
 
-    @validator("SQLALCHEMY_DATABASE_URI", pre=True)
-    def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
-        if isinstance(v, str):
+    @field_validator("SQLALCHEMY_DATABASE_URI", mode="before")
+    @classmethod
+    def assemble_db_connection(cls, v: Optional[str], info: ValidationInfo) -> Any:
+        if isinstance(v, str) and v:
             return v
-        user = values.get("POSTGRES_USER")
-        password = values.get("POSTGRES_PASSWORD")
-        server = values.get("POSTGRES_SERVER")
-        port = values.get("POSTGRES_PORT", "5432")
-        db = values.get("POSTGRES_DB")
+        data = info.data
+        user = data.get("POSTGRES_USER", "postgres")
+        password = data.get("POSTGRES_PASSWORD", "password")
+        server = data.get("POSTGRES_SERVER", "localhost")
+        port = data.get("POSTGRES_PORT", "5432")
+        db = data.get("POSTGRES_DB", "fixora")
         return f"postgresql+asyncpg://{user}:{password}@{server}:{port}/{db}"
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    model_config = ConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        extra="ignore"
+    )
 
 settings = Settings()
+

@@ -22,4 +22,17 @@ async def get_complaint_audit_logs(
     Enforces the exact same RBAC rules as viewing the complaint itself.
     """
     logs = await audit_log_service.get_complaint_audit_logs(db, id, current_user.id)
-    return [AuditLogResponse.model_validate(log) for log in logs]
+    return [
+        AuditLogResponse(
+            id=log.id,
+            action=log.action,
+            performed_by=log.performed_by,
+            actor_name=log.actor.full_name if log.actor else None,
+            actor_email=log.actor.email if log.actor else None,
+            complaint_id=log.complaint_id,
+            details=log.details,
+            created_at=log.created_at,
+        )
+        for log in logs
+    ]
+
