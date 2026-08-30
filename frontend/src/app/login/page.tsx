@@ -1,34 +1,29 @@
 "use client"
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Wrench, GraduationCap, ShieldCheck } from 'lucide-react';
+import { Wrench, GraduationCap, ShieldCheck, AlertCircle } from 'lucide-react';
 import { Footer } from '../../components/Footer';
+import { useAuthStore } from '../../stores/auth-store';
 import styles from './login.module.css';
 
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const login = useAuthStore((state) => state.login);
 
   const handleLoginWithEmail = async (loginEmail: string) => {
     setLoading(true);
+    setErrorMessage(null);
     try {
-      const res = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: loginEmail })
-      });
-      
-      if (res.ok) {
-        router.refresh();
-        const data = await res.json();
-        if (data.role === 'Student') router.push('/dashboard/student');
-        else if (data.role === 'Hostel Supervisor') router.push('/dashboard/supervisor');
-        else if (data.role === 'Maintenance Office') router.push('/dashboard/maintenance');
-        else router.push('/');
-      }
-    } catch (err) {
-      console.error(err);
+      const role = await login(loginEmail);
+      if (role === 'Student') router.push('/dashboard/student');
+      else if (role === 'Hostel Supervisor') router.push('/dashboard/supervisor');
+      else if (role === 'Maintenance Office') router.push('/dashboard/maintenance');
+      else router.push('/');
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Login failed. Please check credentials.');
       setLoading(false);
     }
   };
@@ -37,6 +32,7 @@ export default function Login() {
     e.preventDefault();
     if (email) handleLoginWithEmail(email);
   };
+
 
   return (
     <>
@@ -59,6 +55,12 @@ export default function Login() {
           </div>
           
           <form onSubmit={handleFormSubmit} className={styles.formGroup}>
+            {errorMessage && (
+              <div style={{ padding: '0.75rem 1rem', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#fca5a5', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <AlertCircle size={18} />
+                <span>{errorMessage}</span>
+              </div>
+            )}
             <div className={styles.inputGroup}>
               <input 
                 type="email"

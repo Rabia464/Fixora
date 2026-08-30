@@ -1,25 +1,22 @@
 "use client"
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Home, LayoutDashboard, Eye, Wrench, LogOut, KeyRound, GraduationCap, ShieldCheck, Sun, Moon, Info } from 'lucide-react';
+import { Home, LayoutDashboard, Eye, Wrench, LogOut, GraduationCap, ShieldCheck, Sun, Moon, Info } from 'lucide-react';
+import { useAuthStore } from '../stores/auth-store';
 import styles from './Sidebar.module.css';
 
 export const Sidebar: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const [role, setRole] = useState<string | null>(null);
+  const { role, user, logout, initialize } = useAuthStore();
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
-    if (pathname.includes('/student')) setRole('Student');
-    else if (pathname.includes('/supervisor')) setRole('Hostel Supervisor');
-    else if (pathname.includes('/maintenance')) setRole('Maintenance Office');
-    else setRole(null);
-
-    const savedTheme = localStorage.getItem('fixora_theme') as 'light' | 'dark' || 'light';
+    initialize();
+    const savedTheme = (localStorage.getItem('fixora_theme') as 'light' | 'dark') || 'light';
     setTheme(savedTheme);
     document.documentElement.setAttribute('data-theme', savedTheme);
-  }, [pathname]);
+  }, [initialize]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
@@ -28,11 +25,12 @@ export const Sidebar: React.FC = () => {
     document.documentElement.setAttribute('data-theme', newTheme);
   };
 
-  const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
+  const handleLogout = () => {
+    logout();
     router.push('/login');
     router.refresh();
   };
+
 
   const getActiveTheme = (path: string) => {
     if (path.includes('/student')) return styles.studentActive;
@@ -116,9 +114,11 @@ export const Sidebar: React.FC = () => {
             </div>
             <div>
               <div className={styles.userName}>
-                {role === 'Student' ? 'Fixer Student' : role === 'Hostel Supervisor' ? 'Supervisor' : 'Maintenance'}
+                {user?.full_name || (role === 'Student' ? 'Fixer Student' : role === 'Hostel Supervisor' ? 'Supervisor' : 'Maintenance')}
               </div>
-              <div className={styles.userRoleTag}>{role}</div>
+              <div className={styles.userRoleTag}>
+                {user?.hostel ? `${role} • ${user.hostel}` : role}
+              </div>
             </div>
           </div>
         </div>

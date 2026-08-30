@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { GlassCard } from '../../../components/GlassCard';
 import { Badge } from '../../../components/Badge';
 import { TicketDrawer } from '../../../components/TicketDrawer';
@@ -8,27 +8,37 @@ import { SkeletonCard } from '../../../components/SkeletonCard';
 import { TicketModal } from '../../../components/TicketModal';
 import { BubblyButton } from '../../../components/BubblyButton';
 import { MapPin, CheckCircle, Clock, GraduationCap, ClipboardList, Zap, AlertCircle, Search, Plus, Filter } from 'lucide-react';
-import { Ticket } from '../../api/data';
+import { Complaint, complaintsApi } from '../../../lib/api/complaints';
+import { useAuthStore } from '../../../stores/auth-store';
 import styles from './student.module.css';
 
 export default function StudentDashboard() {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [tickets, setTickets] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [selectedTicket, setSelectedTicket] = useState<Complaint | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const user = useAuthStore(state => state.user);
 
-  useEffect(() => {
-    fetch('/api/complaints')
-      .then(res => res.json())
+  const fetchTickets = useCallback(() => {
+    setLoading(true);
+    complaintsApi
+      .getComplaints()
       .then(data => {
         setTickets(data);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error("Failed to load complaints:", err);
+        setLoading(false);
+      });
   }, []);
+
+  useEffect(() => {
+    fetchTickets();
+  }, [fetchTickets]);
 
   const addToast = (text: string, type: 'success' | 'info' | 'warning' = 'success') => {
     const id = Math.random().toString(36).substring(2, 9);
@@ -38,12 +48,13 @@ export default function StudentDashboard() {
     }, 4000);
   };
 
-  const categories = ['All', 'Plumbing', 'Carpentry', 'Electrical', 'Wi-Fi'];
+  const categories = ['All', 'Plumbing', 'Carpentry', 'Electrical', 'Sanitation', 'General'];
 
   const filteredTickets = tickets.filter(ticket => {
+    const category = ticket.overridden_category || ticket.ai_category || 'General';
     const matchesSearch = ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           ticket.location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || ticket.ai_category === selectedCategory;
+    const matchesCategory = selectedCategory === 'All' || category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -58,12 +69,17 @@ export default function StudentDashboard() {
         </div>
         <div className={styles.profileInfo}>
           <div className={styles.welcomeRow}>
-            <div className={styles.welcomeText}>Student Dashboard</div>
+            <div className={styles.welcomeText}>
+              Welcome back, {user?.full_name || 'Student'}
+            </div>
             <BubblyButton variant="primary" onClick={() => setIsModalOpen(true)}>
               <Plus size={16} /> New Ticket
             </BubblyButton>
           </div>
-          <p className={styles.subText}>Click any ticket card below to view its complete audit lifecycle timeline.</p>
+          <p className={styles.subText}>
+            {user?.hostel ? `Assigned Hostel: ${user.hostel} • ` : ''}
+            Click any ticket card below to view its complete audit lifecycle timeline.
+          </p>
         </div>
       </GlassCard>
 
@@ -112,26 +128,30 @@ export default function StudentDashboard() {
         ) : filteredTickets.length === 0 ? (
           <GlassCard style={{ textAlign: 'center', padding: '48px' }}>
             <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text-muted)' }}>
-              No matching tickets found. Try resetting your search filter.
+              No matching tickets found. Click "New Ticket" to submit a maintenance request.
             </p>
           </GlassCard>
         ) : (
           <div className={styles.grid}>
             {filteredTickets.map(ticket => {
               const isResolved = ticket.status === 'Resolved';
+              const isClosed = ticket.status === 'Closed';
+              const category = ticket.overridden_category || ticket.ai_category;
+              const priority = ticket.overridden_priority || ticket.ai_priority;
+
               return (
                 <GlassCard 
                   key={ticket.id} 
-                  accent={isResolved ? 'mint' : 'yellow'} 
+                  accent={isClosed ? 'mint' : isResolved ? 'yellow' : 'cyan'} 
                   className={styles.ticketCard}
                   onClick={() => setSelectedTicket(ticket)}
                 >
                   <div className={styles.ticketHeader}>
                     <div className={styles.ticketTitle}>{ticket.title}</div>
-                    <Badge status={isResolved ? 'success' : 'warning'}>
-                      {isResolved ? (
+                    <Badge status={isClosed ? 'success' : isResolved ? 'warning' : 'info'}>
+                      {isClosed ? (
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <CheckCircle size={13} /> Resolved
+                          <CheckCircle size={13} /> Closed
                         </span>
                       ) : (
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -143,25 +163,28 @@ export default function StudentDashboard() {
 
                   <div className={styles.ticketLocation}>
                     <MapPin size={15} color="var(--color-text-muted)" />
-                    {ticket.location}
+                    {ticket.location} • {ticket.hostel}
                   </div>
 
                   <div className={styles.ticketDesc}>{ticket.description}</div>
 
                   <div className={styles.ticketMeta}>
-                    {ticket.ai_category && (
+                    {category && (
                       <Badge status="info">
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Zap size={12} /> {ticket.ai_category}
+                          <Zap size={12} /> {category}
                         </span>
                       </Badge>
                     )}
-                    {ticket.ai_priority === 'Critical' && (
-                      <Badge status="danger">
+                    {priority && (
+                      <Badge status={priority === 'Critical' ? 'danger' : 'warning'}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <AlertCircle size={12} /> Critical Priority
+                          <AlertCircle size={12} /> {priority}
                         </span>
                       </Badge>
+                    )}
+                    {ticket.supervisor_override && (
+                      <Badge status="warning">Supervisor Overridden</Badge>
                     )}
                   </div>
                 </GlassCard>
@@ -172,13 +195,20 @@ export default function StudentDashboard() {
       </div>
 
       {/* Ticket Slide-over Detail Drawer */}
-      <TicketDrawer ticket={selectedTicket} onClose={() => setSelectedTicket(null)} />
+      <TicketDrawer 
+        ticket={selectedTicket} 
+        onClose={() => setSelectedTicket(null)} 
+        onTicketUpdated={fetchTickets}
+      />
 
       {/* Submit Ticket Modal */}
       <TicketModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        onSuccess={msg => addToast(msg, 'success')}
+        onSuccess={msg => {
+          addToast(msg, 'success');
+          fetchTickets();
+        }}
       />
     </div>
   );

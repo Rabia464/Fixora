@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 import { BubblyButton } from './BubblyButton';
 import { ProgressBar } from './ProgressBar';
 import { MascotWidget } from './MascotWidget';
-import { Wrench, Search, MapPin, Sparkles, CheckCircle2, ArrowRight, Camera, Upload, Trash2 } from 'lucide-react';
+import { Wrench, Search, MapPin, Sparkles, CheckCircle2, ArrowRight, Camera, Trash2, AlertCircle } from 'lucide-react';
 import styles from './TicketModal.module.css';
-import { useRouter } from 'next/navigation';
+import { complaintsApi } from '../lib/api/complaints';
 
 interface TicketModalProps {
   isOpen: boolean;
@@ -14,12 +14,13 @@ interface TicketModalProps {
 }
 
 export const TicketModal: React.FC<TicketModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const router = useRouter();
   const [step, setStep] = useState(1);
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -38,36 +39,34 @@ export const TicketModal: React.FC<TicketModalProps> = ({ isOpen, onClose, onSuc
   };
 
   const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setErrorMessage(null);
     try {
-      const res = await fetch('/api/complaints', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ title, description, location })
+      await complaintsApi.createComplaint({
+        title,
+        description,
+        location,
       });
-      
-      if (res.ok) {
-        if (onSuccess) onSuccess(`Ticket "${title}" submitted successfully!`);
-        onClose();
-        router.push('/dashboard/student');
-        router.refresh();
-      } else {
-        if (res.status === 401) {
-          router.push('/login');
-        } else {
-          throw new Error("API failed");
-        }
-      }
-    } catch (err) {
-      console.warn("Failed ticket submission", err);
+
+      if (onSuccess) onSuccess(`Ticket "${title}" submitted successfully!`);
+      // Reset form
+      setTitle('');
+      setLocation('');
+      setDescription('');
+      setImagePreview(null);
+      setStep(1);
+      onClose();
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to submit complaint. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const getMascotMessage = () => {
     if (step === 1) return "What needs fixing? Give it a clear title so our AI can route it efficiently.";
-    if (step === 2) return "Where is the issue located? Specify hostel building and room number.";
-    return "Describe the problem and attach a photo to help maintenance fix it faster!";
+    if (step === 2) return "Where is the issue located? Specify room number or area.";
+    return "Describe the problem in detail to help maintenance fix it faster!";
   };
 
   const getStepIcon = () => {
@@ -93,10 +92,17 @@ export const TicketModal: React.FC<TicketModalProps> = ({ isOpen, onClose, onSuc
 
         <MascotWidget message={getMascotMessage()} icon={getStepIcon()} />
 
+        {errorMessage && (
+          <div style={{ margin: '12px 24px 0', padding: '10px 14px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#fca5a5', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <AlertCircle size={16} />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
         <div className={styles.stepContent}>
           {step === 1 && (
             <div className="animate-pop-in">
-              <label className={styles.label}>Issue Title</label>
+              <label className={styles.label}>Issue Title (min 5 characters)</label>
               <input 
                 className={styles.input} 
                 placeholder="e.g. Leaking Washroom Sink" 
@@ -109,10 +115,10 @@ export const TicketModal: React.FC<TicketModalProps> = ({ isOpen, onClose, onSuc
           
           {step === 2 && (
             <div className="animate-pop-in">
-              <label className={styles.label}>Location</label>
+              <label className={styles.label}>Location (min 3 characters)</label>
               <input 
                 className={styles.input} 
-                placeholder="e.g. Hostel B, Room 304" 
+                placeholder="e.g. Room 304, 3rd Floor" 
                 value={location} 
                 onChange={e => setLocation(e.target.value)} 
                 autoFocus 
@@ -122,7 +128,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({ isOpen, onClose, onSuc
 
           {step === 3 && (
             <div className="animate-pop-in">
-              <label className={styles.label}>Description</label>
+              <label className={styles.label}>Description (min 10 characters)</label>
               <textarea 
                 className={styles.textarea} 
                 placeholder="Describe the issue in detail..." 
@@ -163,12 +169,12 @@ export const TicketModal: React.FC<TicketModalProps> = ({ isOpen, onClose, onSuc
           ) : <div />}
           
           {step < 3 ? (
-            <BubblyButton variant="primary" onClick={handleNext} disabled={(step === 1 && !title) || (step === 2 && !location)}>
+            <BubblyButton variant="primary" onClick={handleNext} disabled={(step === 1 && title.trim().length < 5) || (step === 2 && location.trim().length < 3)}>
               Next <ArrowRight size={16} />
             </BubblyButton>
           ) : (
-            <BubblyButton variant="secondary" onClick={handleSubmit} disabled={!description}>
-              Submit Ticket <CheckCircle2 size={16} />
+            <BubblyButton variant="secondary" onClick={handleSubmit} disabled={description.trim().length < 10 || isSubmitting}>
+              {isSubmitting ? 'Submitting...' : 'Submit Ticket'} <CheckCircle2 size={16} />
             </BubblyButton>
           )}
         </div>
