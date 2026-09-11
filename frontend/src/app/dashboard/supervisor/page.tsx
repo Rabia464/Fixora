@@ -7,7 +7,7 @@ import { ProgressBar } from '../../../components/ProgressBar';
 import { TicketDrawer } from '../../../components/TicketDrawer';
 import { ToastContainer, ToastMessage } from '../../../components/Toast';
 import { SkeletonCard } from '../../../components/SkeletonCard';
-import { FileWarning, Sparkles, MapPin, ArrowRight, ShieldCheck, Search, Filter, LayoutGrid, BarChart2, Edit3, CheckCircle } from 'lucide-react';
+import { FileWarning, Sparkles, MapPin, ArrowRight, ShieldCheck, Search, Filter, LayoutGrid, BarChart2, Edit3 } from 'lucide-react';
 import { Complaint, ComplaintPriority, complaintsApi } from '../../../lib/api/complaints';
 import { useAuthStore } from '../../../stores/auth-store';
 import styles from './supervisor.module.css';
@@ -45,7 +45,7 @@ export default function SupervisorDashboard() {
   }, [fetchTickets]);
 
   const addToast = (text: string, type: 'success' | 'info' | 'warning' = 'success') => {
-    const id = Math.random().toString(36).substring(2, 9);
+    const id = crypto.randomUUID();
     setToasts(prev => [...prev, { id, type, text }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
@@ -69,8 +69,8 @@ export default function SupervisorDashboard() {
       await complaintsApi.forwardToMaintenance(ticket.id);
       addToast(`Ticket "${ticket.title}" approved & forwarded to Maintenance!`, 'success');
       fetchTickets();
-    } catch (err: any) {
-      addToast(err.message || 'Failed to forward ticket', 'warning');
+    } catch (err) {
+      addToast((err instanceof Error ? err.message : 'Failed to forward ticket'), 'warning');
     } finally {
       setActionInProgress(null);
     }
@@ -89,8 +89,8 @@ export default function SupervisorDashboard() {
       addToast(`Updated AI recommendations for "${ticket.title}"!`, 'info');
       setEditingTicketId(null);
       fetchTickets();
-    } catch (err: any) {
-      addToast(err.message || 'Failed to save override', 'warning');
+    } catch (err) {
+      addToast((err instanceof Error ? err.message : 'Failed to save override'), 'warning');
     } finally {
       setActionInProgress(null);
     }

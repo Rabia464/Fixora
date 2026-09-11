@@ -16,7 +16,7 @@ class UserRepository(BaseRepository[User]):
     Handles database operations strictly for the User entity.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(User)
 
     async def get_by_email(self, db: AsyncSession, email: str) -> Optional[User]:

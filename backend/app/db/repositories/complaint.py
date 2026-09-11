@@ -15,7 +15,7 @@ class ComplaintRepository(BaseRepository[Complaint]):
     Handles database operations strictly for the Complaint entity.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(Complaint)
 
     async def get_with_details(self, db: AsyncSession, id: uuid.UUID) -> Optional[Complaint]:

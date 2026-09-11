@@ -14,7 +14,7 @@ class AuditLogRepository(BaseRepository[AuditLog]):
     Handles database operations strictly for the AuditLog entity.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(AuditLog)
 
     async def get_by_complaint(self, db: AsyncSession, complaint_id: uuid.UUID) -> List[AuditLog]:

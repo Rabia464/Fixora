@@ -1,7 +1,7 @@
 from typing import Any, List, Optional
 
-from pydantic import ConfigDict, ValidationInfo, field_validator
-from pydantic_settings import BaseSettings
+from pydantic import ValidationInfo, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -22,11 +22,18 @@ class Settings(BaseSettings):
     ]
 
     # Database setup
-    POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "password"
-    POSTGRES_SERVER: str = "localhost"
+    #
+    # By default Fixora runs on a zero-dependency local SQLite file, so the
+    # backend can start with no external services ("lighter, easier to host").
+    # To use PostgreSQL, set the POSTGRES_* variables (see .env.example) or
+    # provide a full SQLALCHEMY_DATABASE_URI directly. docker-compose sets the
+    # POSTGRES_* vars, so the containerized stack uses Postgres automatically.
+    POSTGRES_USER: Optional[str] = None
+    POSTGRES_PASSWORD: Optional[str] = None
+    POSTGRES_SERVER: Optional[str] = None
     POSTGRES_PORT: str = "5432"
     POSTGRES_DB: str = "fixora"
+    SQLITE_PATH: str = "fixora.db"
     SQLALCHEMY_DATABASE_URI: Optional[str] = None
 
     @field_validator("SQLALCHEMY_DATABASE_URI", mode="before")
@@ -35,14 +42,23 @@ class Settings(BaseSettings):
         if isinstance(v, str) and v:
             return v
         data = info.data
-        user = data.get("POSTGRES_USER", "postgres")
-        password = data.get("POSTGRES_PASSWORD", "password")
-        server = data.get("POSTGRES_SERVER", "localhost")
-        port = data.get("POSTGRES_PORT", "5432")
-        db = data.get("POSTGRES_DB", "fixora")
-        return f"postgresql+asyncpg://{user}:{password}@{server}:{port}/{db}"
+        server = data.get("POSTGRES_SERVER")
+        # Only build a Postgres URL when a server host is explicitly configured;
+        # otherwise fall back to a local SQLite file.
+        if server:
+            user = data.get("POSTGRES_USER") or "postgres"
+            password = data.get("POSTGRES_PASSWORD") or "password"
+            port = data.get("POSTGRES_PORT", "5432")
+            db = data.get("POSTGRES_DB", "fixora")
+            return f"postgresql+asyncpg://{user}:{password}@{server}:{port}/{db}"
+        sqlite_path = data.get("SQLITE_PATH", "fixora.db")
+        return f"sqlite+aiosqlite:///{sqlite_path}"
 
-    model_config = ConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
+    @property
+    def is_sqlite(self) -> bool:
+        return str(self.SQLALCHEMY_DATABASE_URI).startswith("sqlite")
+
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
 
 
 settings = Settings()

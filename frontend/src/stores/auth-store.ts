@@ -50,8 +50,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({ isLoading: false });
       }
       return res.role;
-    } catch (err: any) {
-      const message = err.message || 'Login failed';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Login failed';
       set({ error: message, isLoading: false });
       throw err;
     }

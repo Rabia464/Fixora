@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import Any, Union
+from typing import Any, Optional, Union
 
 from jose import jwt
 
@@ -8,7 +8,9 @@ from app.domain.schemas.auth import TokenPayload
 
 
 def create_access_token(
-    subject: Union[str, Any], expires_delta: timedelta = None, role: str = None
+    subject: Union[str, Any],
+    expires_delta: Optional[timedelta] = None,
+    role: Optional[str] = None,
 ) -> str:
     """
     Generate a JWT token for user authentication.

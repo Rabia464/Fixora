@@ -6,6 +6,11 @@ __pycache__/
 # Environment variables
 .env
 
+# Local SQLite database (default dev backend)
+*.db
+*.sqlite
+*.sqlite3
+
 # Virtual environment
 venv/
 env/

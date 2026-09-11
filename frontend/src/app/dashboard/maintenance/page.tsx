@@ -40,7 +40,7 @@ export default function MaintenanceDashboard() {
   }, [fetchTasks]);
 
   const addToast = (text: string, type: 'success' | 'info' | 'warning' = 'success') => {
-    const id = Math.random().toString(36).substring(2, 9);
+    const id = crypto.randomUUID();
     setToasts(prev => [...prev, { id, type, text }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
@@ -54,8 +54,8 @@ export default function MaintenanceDashboard() {
       await complaintsApi.updateProgress(task.id, { note: 'Technician dispatched on site' });
       addToast(`Work started on ticket "${task.title}"!`, 'info');
       fetchTasks();
-    } catch (err: any) {
-      addToast(err.message || 'Failed to update progress', 'warning');
+    } catch (err) {
+      addToast((err instanceof Error ? err.message : 'Failed to update progress'), 'warning');
     } finally {
       setActionInProgress(null);
     }
@@ -80,8 +80,8 @@ export default function MaintenanceDashboard() {
       addToast(`Task "${task.title}" marked resolved!`, 'success');
       setResolvingTicketId(null);
       fetchTasks();
-    } catch (err: any) {
-      addToast(err.message || 'Failed to resolve task', 'warning');
+    } catch (err) {
+      addToast((err instanceof Error ? err.message : 'Failed to resolve task'), 'warning');
     } finally {
       setActionInProgress(null);
     }

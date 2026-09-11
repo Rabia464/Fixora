@@ -13,7 +13,7 @@ class NotificationRepository(BaseRepository[Notification]):
     Handles database operations strictly for the Notification entity.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(Notification)
 
     async def get_unread_for_user(

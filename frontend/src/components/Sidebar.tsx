@@ -1,9 +1,40 @@
 "use client"
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import type { LucideIcon } from 'lucide-react';
 import { Home, LayoutDashboard, Eye, Wrench, LogOut, GraduationCap, ShieldCheck, Sun, Moon, Info } from 'lucide-react';
 import { useAuthStore } from '../stores/auth-store';
 import styles from './Sidebar.module.css';
+
+const getActiveTheme = (path: string): string => {
+  if (path.includes('/student')) return styles.studentActive;
+  if (path.includes('/supervisor')) return styles.supervisorActive;
+  if (path.includes('/maintenance')) return styles.maintenanceActive;
+  return '';
+};
+
+interface NavItemProps {
+  icon: LucideIcon;
+  label: string;
+  path?: string;
+  action?: () => void;
+  currentPath: string;
+  onNavigate: (path: string) => void;
+}
+
+const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, path, action, currentPath, onNavigate }) => {
+  const isActive = !!path && currentPath === path;
+  const activeTheme = isActive && path ? getActiveTheme(path) : '';
+  return (
+    <button
+      className={`${styles.navLink} ${isActive ? styles.active : ''} ${activeTheme}`}
+      onClick={() => (action ? action() : path && onNavigate(path))}
+    >
+      <Icon className={styles.icon} size={20} />
+      <span>{label}</span>
+    </button>
+  );
+};
 
 export const Sidebar: React.FC = () => {
   const router = useRouter();
@@ -31,27 +62,7 @@ export const Sidebar: React.FC = () => {
     router.refresh();
   };
 
-
-  const getActiveTheme = (path: string) => {
-    if (path.includes('/student')) return styles.studentActive;
-    if (path.includes('/supervisor')) return styles.supervisorActive;
-    if (path.includes('/maintenance')) return styles.maintenanceActive;
-    return '';
-  };
-
-  const NavItem = ({ icon: Icon, label, path, action }: any) => {
-    const isActive = pathname === path;
-    const activeTheme = isActive ? getActiveTheme(path) : '';
-    return (
-      <button 
-        className={`${styles.navLink} ${isActive ? styles.active : ''} ${activeTheme}`}
-        onClick={() => action ? action() : router.push(path)}
-      >
-        <Icon className={styles.icon} size={20} />
-        <span>{label}</span>
-      </button>
-    );
-  };
+  const navProps = { currentPath: pathname, onNavigate: (p: string) => router.push(p) };
 
   return (
     <aside className={styles.sidebar}>
@@ -62,25 +73,25 @@ export const Sidebar: React.FC = () => {
         <span className={styles.logoText}>Fixora</span>
       </div>
       
-      <NavItem icon={Home} label="Home" path="/" />
+      <NavItem icon={Home} label="Home" path="/" {...navProps} />
       
       {role === 'Student' && (
-        <NavItem icon={LayoutDashboard} label="My Dashboard" path="/dashboard/student" />
+        <NavItem icon={LayoutDashboard} label="My Dashboard" path="/dashboard/student" {...navProps} />
       )}
       
       {role === 'Hostel Supervisor' && (
-        <NavItem icon={Eye} label="Review Board" path="/dashboard/supervisor" />
+        <NavItem icon={Eye} label="Review Board" path="/dashboard/supervisor" {...navProps} />
       )}
 
       {role === 'Maintenance Office' && (
-        <NavItem icon={Wrench} label="Task List" path="/dashboard/maintenance" />
+        <NavItem icon={Wrench} label="Task List" path="/dashboard/maintenance" {...navProps} />
       )}
 
       {role ? (
-        <NavItem icon={LogOut} label="Logout" action={handleLogout} />
+        <NavItem icon={LogOut} label="Logout" action={handleLogout} {...navProps} />
       ) : (
         <>
-          <NavItem icon={Info} label="About Fixora" path="/about" />
+          <NavItem icon={Info} label="About Fixora" path="/about" {...navProps} />
         </>
       )}
 

@@ -23,6 +23,12 @@ services:
       dockerfile: Dockerfile
     container_name: fixora-backend
     restart: always
+    # Apply migrations and seed demo data before starting the API so a fresh
+    # `docker compose up --build` yields a fully working, seeded stack.
+    command: >
+      sh -c "alembic upgrade head &&
+             python -m app.db.seed &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password

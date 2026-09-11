@@ -1,17 +1,38 @@
 import asyncio
 import logging
+from typing import Optional, TypedDict
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.db.models import AuditLog, Complaint, Role, User
-from app.db.session import AsyncSessionLocal
+from app.db.session import AsyncSessionLocal, init_models
 from app.domain.enums import AuditAction, ComplaintPriority, ComplaintStatus, UserRole
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-SEED_USERS = [
+
+class SeedUser(TypedDict):
+    email: str
+    full_name: str
+    hostel: Optional[str]
+    role: UserRole
+
+
+class SeedComplaint(TypedDict):
+    title: str
+    description: str
+    location: str
+    hostel: str
+    status: ComplaintStatus
+    ai_category: str
+    ai_priority: ComplaintPriority
+    ai_department: str
+
+
+SEED_USERS: list[SeedUser] = [
     {
         "email": "student@giki.edu.pk",
         "full_name": "Demo Student",
@@ -95,7 +116,7 @@ async def seed_sample_complaints(session: AsyncSession, user_map: dict[str, User
 
     logger.info("Seeding sample complaints...")
 
-    sample_data = [
+    sample_data: list[SeedComplaint] = [
         {
             "title": "Leaking Pipe Under Washroom Sink",
             "description": "The main drainage pipe in room 204 washroom is leaking water onto the floor constantly.",
@@ -213,6 +234,10 @@ async def seed_sample_complaints(session: AsyncSession, user_map: dict[str, User
 
 async def main() -> None:
     logger.info("Starting database seeding...")
+    # On SQLite (the zero-dependency default) there are no Alembic migrations,
+    # so ensure the schema exists before seeding. Postgres uses `alembic upgrade head`.
+    if settings.is_sqlite:
+        await init_models()
     async with AsyncSessionLocal() as session:
         await seed_roles(session)
         user_map = await seed_users(session)

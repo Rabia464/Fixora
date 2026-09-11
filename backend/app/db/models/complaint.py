@@ -7,6 +7,7 @@ from sqlalchemy import Boolean, ForeignKey, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.models.mixins import TimestampMixin, UUIDMixin
+from app.db.models.types import enum_column
 from app.db.session import Base
 from app.domain.enums import ComplaintPriority, ComplaintStatus
 
@@ -28,18 +29,22 @@ class Complaint(Base, UUIDMixin, TimestampMixin):
     description: Mapped[str] = mapped_column(Text, nullable=False)
     location: Mapped[str] = mapped_column(String(255), nullable=False)
     hostel: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
-    status: Mapped[ComplaintStatus] = mapped_column(String(20), nullable=False, index=True)
+    status: Mapped[ComplaintStatus] = mapped_column(
+        enum_column(ComplaintStatus, 20), nullable=False, index=True
+    )
 
     # AI Recommendation Fields (Nullable if AI fails)
     ai_category: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    ai_priority: Mapped[Optional[ComplaintPriority]] = mapped_column(String(50), nullable=True)
+    ai_priority: Mapped[Optional[ComplaintPriority]] = mapped_column(
+        enum_column(ComplaintPriority, 50), nullable=True
+    )
     ai_department: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
     # Supervisor Review Fields
     supervisor_override: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     overridden_category: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     overridden_priority: Mapped[Optional[ComplaintPriority]] = mapped_column(
-        String(50), nullable=True
+        enum_column(ComplaintPriority, 50), nullable=True
     )
     overridden_department: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 

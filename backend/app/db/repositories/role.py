@@ -12,7 +12,7 @@ class RoleRepository(BaseRepository[Role]):
     Handles database operations strictly for the Role entity.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(Role)
 
     async def get_by_name(self, db: AsyncSession, name: str) -> Optional[Role]:
