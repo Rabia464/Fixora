@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   MessageSquare, Cpu, UserCheck, Wrench, CheckCircle,
-  ArrowRight, Zap, Shield, SearchCheck, Blocks, Activity
+  ArrowRight, Zap, Shield, SearchCheck
 } from 'lucide-react';
 import { Footer } from '../../components/Footer';
 import styles from './about.module.css';
@@ -105,7 +105,7 @@ export default function AboutPage() {
             <div className={styles.featureIcon}><Cpu size={24} /></div>
             <h2 className={styles.featureTitle}>AI-Powered Triage</h2>
             <p className={styles.featureDesc}>
-              Our engine instantly classifies, prioritises, and routes every complaint the moment it's submitted.
+              Our engine instantly classifies, prioritises, and routes every complaint the moment it&rsquo;s submitted.
             </p>
             <div className={styles.statsFlex}>
               <div className={styles.statBox}>

@@ -28,6 +28,21 @@ class Base(DeclarativeBase):
     pass
 
 
+async def init_models() -> None:
+    """
+    Create all tables from the ORM metadata.
+
+    Used for the zero-dependency SQLite setup (and tests), where Alembic
+    migrations are not run. PostgreSQL deployments should use
+    ``alembic upgrade head`` instead, which owns the canonical schema.
+    """
+    # Import models so their tables are registered on Base.metadata.
+    import app.db.models  # noqa: F401
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
 # Dependency to yield database sessions
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """

@@ -4,6 +4,7 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.models.audit_log import AuditLog
 from app.db.repositories.audit_log import audit_log_repo
 from app.domain.enums import AuditAction
 
@@ -38,7 +39,7 @@ class AuditLogService:
         db: AsyncSession,
         complaint_id: uuid.UUID,
         current_user_id: uuid.UUID,
-    ):
+    ) -> list[AuditLog]:
         from app.services.complaint import complaint_service
 
         # Enforce central RBAC: If the user can view the complaint, they can view its audit logs

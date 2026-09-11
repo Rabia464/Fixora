@@ -1,4 +1,6 @@
 import logging
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -8,8 +10,21 @@ from fastapi.responses import JSONResponse
 from app.api.routers import api_router
 from app.core.config import settings
 from app.core.exceptions import BusinessLogicException
+from app.db.session import init_models
 
 logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    """
+    On startup, auto-create tables when running on SQLite (the zero-dependency
+    default). PostgreSQL relies on Alembic migrations, so tables are not
+    auto-created there.
+    """
+    if settings.is_sqlite:
+        await init_models()
+    yield
 
 
 def create_app() -> FastAPI:
@@ -21,6 +36,7 @@ def create_app() -> FastAPI:
         title=settings.PROJECT_NAME,
         version=settings.VERSION,
         openapi_url=f"{settings.API_V1_STR}/openapi.json",
+        lifespan=lifespan,
     )
 
     # Set up CORS
@@ -35,7 +51,9 @@ def create_app() -> FastAPI:
 
     # Custom Exception Handlers for standardized API responses
     @app.exception_handler(BusinessLogicException)
-    async def business_logic_exception_handler(request: Request, exc: BusinessLogicException):
+    async def business_logic_exception_handler(
+        request: Request, exc: BusinessLogicException
+    ) -> JSONResponse:
         headers = getattr(exc, "headers", None)
         return JSONResponse(
             status_code=exc.status_code,
@@ -44,7 +62,7 @@ def create_app() -> FastAPI:
         )
 
     @app.exception_handler(HTTPException)
-    async def http_exception_handler(request: Request, exc: HTTPException):
+    async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
         headers = getattr(exc, "headers", None)
         return JSONResponse(
             status_code=exc.status_code,
@@ -53,7 +71,9 @@ def create_app() -> FastAPI:
         )
 
     @app.exception_handler(RequestValidationError)
-    async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    async def validation_exception_handler(
+        request: Request, exc: RequestValidationError
+    ) -> JSONResponse:
         first_error = exc.errors()[0]["msg"] if exc.errors() else "Invalid request data"
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -65,7 +85,7 @@ def create_app() -> FastAPI:
         )
 
     @app.exception_handler(Exception)
-    async def unhandled_exception_handler(request: Request, exc: Exception):
+    async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
         logger.exception(f"Unhandled server error: {exc}")
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -76,7 +96,7 @@ def create_app() -> FastAPI:
     app.include_router(api_router, prefix=settings.API_V1_STR)
 
     @app.get("/health", tags=["health"])
-    async def health_check():
+    async def health_check() -> dict[str, str]:
         return {"status": "ok", "project": settings.PROJECT_NAME, "version": settings.VERSION}
 
     return app

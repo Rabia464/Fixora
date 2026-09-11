@@ -41,7 +41,7 @@ export default function StudentDashboard() {
   }, [fetchTickets]);
 
   const addToast = (text: string, type: 'success' | 'info' | 'warning' = 'success') => {
-    const id = Math.random().toString(36).substring(2, 9);
+    const id = crypto.randomUUID();
     setToasts(prev => [...prev, { id, type, text }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
@@ -128,7 +128,7 @@ export default function StudentDashboard() {
         ) : filteredTickets.length === 0 ? (
           <GlassCard style={{ textAlign: 'center', padding: '48px' }}>
             <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text-muted)' }}>
-              No matching tickets found. Click "New Ticket" to submit a maintenance request.
+              No matching tickets found. Click &ldquo;New Ticket&rdquo; to submit a maintenance request.
             </p>
           </GlassCard>
         ) : (

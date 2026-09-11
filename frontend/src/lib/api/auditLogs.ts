@@ -7,7 +7,7 @@ export interface AuditLogItem {
   actor_name?: string | null;
   actor_email?: string | null;
   complaint_id?: string | null;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   created_at: string;
 }
 

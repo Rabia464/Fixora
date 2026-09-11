@@ -4,7 +4,7 @@ import { Complaint, complaintsApi } from '../lib/api/complaints';
 import { AuditLogItem, auditLogsApi } from '../lib/api/auditLogs';
 import { Badge } from './Badge';
 import { BubblyButton } from './BubblyButton';
-import { MapPin, Clock, CheckCircle2, AlertCircle, FileText, X, RotateCcw, User, ShieldAlert } from 'lucide-react';
+import { MapPin, CheckCircle2, FileText, X, RotateCcw } from 'lucide-react';
 import styles from './TicketDrawer.module.css';
 
 interface TicketDrawerProps {
@@ -48,8 +48,8 @@ export const TicketDrawer: React.FC<TicketDrawerProps> = ({ ticket, onClose, onT
       await complaintsApi.confirmResolution(ticket.id);
       if (onTicketUpdated) onTicketUpdated();
       onClose();
-    } catch (err: any) {
-      alert(err.message || 'Failed to confirm resolution');
+    } catch (err) {
+      alert((err instanceof Error ? err.message : 'Failed to confirm resolution'));
     } finally {
       setActionLoading(false);
     }
@@ -65,8 +65,8 @@ export const TicketDrawer: React.FC<TicketDrawerProps> = ({ ticket, onClose, onT
       await complaintsApi.reopenComplaint(ticket.id, { reason: reopenReason });
       if (onTicketUpdated) onTicketUpdated();
       onClose();
-    } catch (err: any) {
-      alert(err.message || 'Failed to reopen complaint');
+    } catch (err) {
+      alert((err instanceof Error ? err.message : 'Failed to reopen complaint'));
     } finally {
       setActionLoading(false);
     }

@@ -4,11 +4,12 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, text
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Index
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.models.mixins import UUIDMixin
+from app.db.models.types import enum_column, utcnow
 from app.db.session import Base
 from app.domain.enums import NotificationType
 
@@ -30,12 +31,14 @@ class Notification(Base, UUIDMixin):
     complaint_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("complaints.id"), nullable=False, index=True
     )
-    type: Mapped[NotificationType] = mapped_column(String(50), nullable=False)
-    payload: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    type: Mapped[NotificationType] = mapped_column(
+        enum_column(NotificationType, 50), nullable=False
+    )
+    payload: Mapped[dict] = mapped_column(JSON().with_variant(JSONB, "postgresql"), nullable=False)
     is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=text("now()"), nullable=False
+        DateTime(timezone=True), default=utcnow, nullable=False
     )
 
     # Relationships

@@ -8,7 +8,7 @@
 
 - **Frontend:** Next.js 16 (App Router) + React 19, TypeScript, Zustand state management, Glassmorphic CSS design system, Lucide icons.
 - **Backend:** FastAPI (Python 3.11+ / 3.12), SQLAlchemy 2.0 (asyncio + asyncpg), Pydantic v2 validation, JWT-based RBAC authentication.
-- **Persistence & Migration:** PostgreSQL 16 with composite indexes, Alembic async migrations.
+- **Persistence & Migration:** Dialect-agnostic SQLAlchemy models — runs on a zero-dependency **SQLite** file by default (auto-created tables), or **PostgreSQL 16** with composite indexes and Alembic async migrations for production.
 - **AI Triage Module:** Rule-based heuristics classifier automatically assigning category (`Plumbing`, `Electrical`, `Furniture`, `Sanitation`), priority (`Low`, `Medium`, `High`, `Critical`), and destination department (`Maintenance`, etc.).
 
 ---
@@ -55,31 +55,41 @@ docker compose up --build
 
 ### 2. Run Locally for Development
 
-#### A. Start Database
-```bash
-docker compose up -d db
-```
+By default the backend runs on a **zero-dependency local SQLite file** — no
+database server, no migrations, nothing to install or host. To use PostgreSQL
+instead (e.g. for production), set the `POSTGRES_*` variables in `backend/.env`
+(see `backend/.env.example`) and run `alembic upgrade head`.
 
-#### B. Start Backend
+#### A. Start Backend (SQLite — default)
 ```bash
 cd backend
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt -r requirements-dev.txt
+cp .env.example .env
 
-# Run migrations & seed demo data
-alembic upgrade head
+# Seed demo data (tables are auto-created on SQLite)
 python -m app.db.seed
 
 # Start dev server
 uvicorn app.main:app --reload --port 8000
 ```
 
-#### C. Start Frontend
+#### B. Start Frontend
 ```bash
 cd frontend
 npm install
 npm run dev
+```
+
+#### Optional: use PostgreSQL instead
+```bash
+# 1. Start a Postgres instance (or point at a managed one, e.g. Neon/Supabase)
+docker compose up -d db
+# 2. Set the POSTGRES_* vars in backend/.env, then:
+cd backend
+alembic upgrade head
+python -m app.db.seed
 ```
 
 ---

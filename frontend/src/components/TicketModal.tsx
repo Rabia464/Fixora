@@ -56,8 +56,8 @@ export const TicketModal: React.FC<TicketModalProps> = ({ isOpen, onClose, onSuc
       setImagePreview(null);
       setStep(1);
       onClose();
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Failed to submit complaint. Please try again.');
+    } catch (err) {
+      setErrorMessage((err instanceof Error ? err.message : 'Failed to submit complaint. Please try again.'));
     } finally {
       setIsSubmitting(false);
     }

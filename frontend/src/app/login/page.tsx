@@ -22,8 +22,8 @@ export default function Login() {
       else if (role === 'Hostel Supervisor') router.push('/dashboard/supervisor');
       else if (role === 'Maintenance Office') router.push('/dashboard/maintenance');
       else router.push('/');
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Login failed. Please check credentials.');
+    } catch (err) {
+      setErrorMessage((err instanceof Error ? err.message : 'Login failed. Please check credentials.'));
       setLoading(false);
     }
   };

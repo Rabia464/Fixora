@@ -5,21 +5,22 @@
 # ===========================================================
 
 # ── Web Framework ───────────────────────────────────────────
-fastapi==0.115.5
-uvicorn[standard]==0.32.1          # ASGI server with watchfiles + httptools
+fastapi>=0.115.5
+uvicorn[standard]>=0.32.1          # ASGI server with watchfiles + httptools
 
 # ── Data Validation & Settings ──────────────────────────────
-pydantic==2.10.3
-pydantic[email]==2.10.3             # EmailStr support (used in user schemas)
-pydantic-settings==2.7.0           # Reads .env into typed Settings model
+pydantic>=2.10.3
+pydantic[email]>=2.10.3             # EmailStr support (used in user schemas)
+pydantic-settings>=2.7.0           # Reads .env into typed Settings model
 
 # ── Database ────────────────────────────────────────────────
-sqlalchemy[asyncio]==2.0.36        # ORM + async engine support
-asyncpg==0.30.0                    # Async PostgreSQL driver (updated for py 3.13)
-alembic==1.14.0                    # Schema migration tool
+sqlalchemy[asyncio]>=2.0.30        # ORM + async engine support
+aiosqlite>=0.20.0                  # Async SQLite driver (default, zero-dependency)
+asyncpg>=0.30.0                    # Async PostgreSQL driver (for managed/prod hosting)
+alembic>=1.14.0                    # Schema migration tool
 
 # ── Authentication ───────────────────────────────────────────
-python-jose[cryptography]==3.3.0   # JWT creation and verification (HS256)
+python-jose[cryptography]>=3.3.0   # JWT creation and verification (HS256)
 
 # ── Utilities ───────────────────────────────────────────────
-python-dotenv==1.0.1               # .env file loading (backup for pydantic-settings)
+python-dotenv>=1.0.1               # .env file loading (backup for pydantic-settings)

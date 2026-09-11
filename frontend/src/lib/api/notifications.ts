@@ -5,7 +5,7 @@ export interface NotificationItem {
   user_id: string;
   complaint_id: string;
   type: string;
-  payload: Record<string, any>;
+  payload: Record<string, unknown>;
   is_read: boolean;
   created_at: string;
 }

@@ -4,11 +4,12 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import DateTime, ForeignKey, Index, String, text
+from sqlalchemy import JSON, DateTime, ForeignKey, Index
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.models.mixins import UUIDMixin
+from app.db.models.types import enum_column, utcnow
 from app.db.session import Base
 from app.domain.enums import AuditAction
 
@@ -25,17 +26,17 @@ class AuditLog(Base, UUIDMixin):
 
     __tablename__ = "audit_logs"
 
-    action: Mapped[AuditAction] = mapped_column(String(100), nullable=False)
+    action: Mapped[AuditAction] = mapped_column(enum_column(AuditAction, 100), nullable=False)
     performed_by: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id"), nullable=False, index=True
     )
     complaint_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         ForeignKey("complaints.id"), nullable=True, index=True
     )
-    details: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    details: Mapped[dict] = mapped_column(JSON().with_variant(JSONB, "postgresql"), nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=text("now()"), nullable=False, index=True
+        DateTime(timezone=True), default=utcnow, nullable=False, index=True
     )
 
     # Relationships

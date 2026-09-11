@@ -29,7 +29,7 @@ async def get_unread_notifications(
 async def mark_notifications_as_read(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-):
+) -> dict[str, str]:
     """
     Mark all unread notifications as read for the currently authenticated user.
     """

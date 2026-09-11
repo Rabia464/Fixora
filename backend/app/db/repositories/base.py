@@ -19,12 +19,12 @@ class BaseRepository(Generic[ModelType]):
     Keeps database boilerplate DRY and abstracts query execution away from the service layer.
     """
 
-    def __init__(self, model: Type[ModelType]):
+    def __init__(self, model: Type[ModelType]) -> None:
         self.model = model
 
     async def get(self, db: AsyncSession, id: uuid.UUID) -> Optional[ModelType]:
         """Fetch a single record by its UUID primary key."""
-        result = await db.execute(select(self.model).where(self.model.id == id))
+        result = await db.execute(select(self.model).where(self.model.id == id))  # type: ignore[attr-defined]
         return result.scalars().first()
 
     async def get_all(self, db: AsyncSession, skip: int = 0, limit: int = 100) -> List[ModelType]:
@@ -58,8 +58,8 @@ class BaseRepository(Generic[ModelType]):
         await db.refresh(db_obj)
         return db_obj
 
-    async def delete(self, db: AsyncSession, *, id: uuid.UUID) -> ModelType:
-        """Delete a record by ID and return the deleted object."""
+    async def delete(self, db: AsyncSession, *, id: uuid.UUID) -> Optional[ModelType]:
+        """Delete a record by ID and return the deleted object (or None if absent)."""
         obj = await self.get(db, id=id)
         if obj:
             await db.delete(obj)
