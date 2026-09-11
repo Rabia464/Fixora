@@ -5,39 +5,64 @@ import { AuditLogItem, auditLogsApi } from '../lib/api/auditLogs';
 import { Badge } from './Badge';
 import { BubblyButton } from './BubblyButton';
 import { MapPin, CheckCircle2, FileText, X, RotateCcw } from 'lucide-react';
+import type { ToastType } from '../hooks/useToast';
 import styles from './TicketDrawer.module.css';
 
 interface TicketDrawerProps {
   ticket: Complaint | null;
   onClose: () => void;
   onTicketUpdated?: () => void;
+  /** Surface success/error feedback as a toast (falls back to no-op). */
+  onNotify?: (text: string, type?: ToastType) => void;
 }
 
-export const TicketDrawer: React.FC<TicketDrawerProps> = ({ ticket, onClose, onTicketUpdated }) => {
+export const TicketDrawer: React.FC<TicketDrawerProps> = ({
+  ticket,
+  onClose,
+  onTicketUpdated,
+  onNotify,
+}) => {
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
-  const [loadingLogs, setLoadingLogs] = useState(false);
+  const [logsTicketId, setLogsTicketId] = useState<string | null>(null);
   const [reopenReason, setReopenReason] = useState('');
   const [showReopenInput, setShowReopenInput] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
+  const notify = (text: string, type: ToastType = 'success') => onNotify?.(text, type);
+
+  const handleClose = () => {
+    setShowReopenInput(false);
+    setReopenReason('');
+    onClose();
+  };
+
   useEffect(() => {
-    if (ticket) {
-      setLoadingLogs(true);
-      auditLogsApi
-        .getByComplaint(ticket.id)
-        .then(logs => {
+    if (!ticket) return;
+    let active = true;
+    auditLogsApi
+      .getByComplaint(ticket.id)
+      .then(logs => {
+        if (active) {
           setAuditLogs(logs);
-          setLoadingLogs(false);
-        })
-        .catch(() => setLoadingLogs(false));
-    } else {
-      setAuditLogs([]);
-      setShowReopenInput(false);
-      setReopenReason('');
-    }
+          setLogsTicketId(ticket.id);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setAuditLogs([]);
+          setLogsTicketId(ticket.id);
+        }
+      });
+    return () => {
+      active = false;
+    };
   }, [ticket]);
 
   if (!ticket) return null;
+
+  // Derived so we never call setState synchronously inside the effect: logs are
+  // "loading" until the fetch for the currently selected ticket has landed.
+  const loadingLogs = logsTicketId !== ticket.id;
 
   const isResolved = ticket.status === 'Resolved';
   const isClosed = ticket.status === 'Closed';
@@ -46,10 +71,11 @@ export const TicketDrawer: React.FC<TicketDrawerProps> = ({ ticket, onClose, onT
     setActionLoading(true);
     try {
       await complaintsApi.confirmResolution(ticket.id);
+      notify('Ticket confirmed and closed. Thank you!', 'success');
       if (onTicketUpdated) onTicketUpdated();
-      onClose();
+      handleClose();
     } catch (err) {
-      alert((err instanceof Error ? err.message : 'Failed to confirm resolution'));
+      notify(err instanceof Error ? err.message : 'Failed to confirm resolution', 'warning');
     } finally {
       setActionLoading(false);
     }
@@ -57,16 +83,17 @@ export const TicketDrawer: React.FC<TicketDrawerProps> = ({ ticket, onClose, onT
 
   const handleReopen = async () => {
     if (!reopenReason.trim() || reopenReason.trim().length < 10) {
-      alert('Please provide a reason with at least 10 characters.');
+      notify('Please provide a reason with at least 10 characters.', 'warning');
       return;
     }
     setActionLoading(true);
     try {
       await complaintsApi.reopenComplaint(ticket.id, { reason: reopenReason });
+      notify('Ticket reopened. Maintenance has been notified.', 'info');
       if (onTicketUpdated) onTicketUpdated();
-      onClose();
+      handleClose();
     } catch (err) {
-      alert((err instanceof Error ? err.message : 'Failed to reopen complaint'));
+      notify(err instanceof Error ? err.message : 'Failed to reopen complaint', 'warning');
     } finally {
       setActionLoading(false);
     }
@@ -77,14 +104,14 @@ export const TicketDrawer: React.FC<TicketDrawerProps> = ({ ticket, onClose, onT
   };
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
+    <div className={styles.overlay} onClick={handleClose}>
       <div className={styles.drawer} onClick={e => e.stopPropagation()}>
         <div className={styles.header}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FileText size={20} color="var(--color-cyan)" />
             <h2 className={styles.title}>Ticket Details</h2>
           </div>
-          <button className={styles.closeBtn} onClick={onClose}>
+          <button className={styles.closeBtn} onClick={handleClose}>
             <X size={18} />
           </button>
         </div>

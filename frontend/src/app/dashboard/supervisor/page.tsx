@@ -1,56 +1,35 @@
 "use client"
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { GlassCard } from '../../../components/GlassCard';
 import { BubblyButton } from '../../../components/BubblyButton';
 import { Badge } from '../../../components/Badge';
 import { ProgressBar } from '../../../components/ProgressBar';
 import { TicketDrawer } from '../../../components/TicketDrawer';
-import { ToastContainer, ToastMessage } from '../../../components/Toast';
+import { ToastContainer } from '../../../components/Toast';
 import { SkeletonCard } from '../../../components/SkeletonCard';
 import { FileWarning, Sparkles, MapPin, ArrowRight, ShieldCheck, Search, Filter, LayoutGrid, BarChart2, Edit3 } from 'lucide-react';
 import { Complaint, ComplaintPriority, complaintsApi } from '../../../lib/api/complaints';
 import { useAuthStore } from '../../../stores/auth-store';
+import { useToast } from '../../../hooks/useToast';
+import { useAsyncData } from '../../../hooks/useAsyncData';
 import styles from './supervisor.module.css';
 
+const EMPTY_TICKETS: Complaint[] = [];
+
 export default function SupervisorDashboard() {
-  const [tickets, setTickets] = useState<Complaint[]>([]);
-  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'list' | 'analytics'>('list');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedTicket, setSelectedTicket] = useState<Complaint | null>(null);
-  const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
   const [editingTicketId, setEditingTicketId] = useState<string | null>(null);
   const [overrideCategory, setOverrideCategory] = useState('');
   const [overridePriority, setOverridePriority] = useState<ComplaintPriority>('High');
   const user = useAuthStore(state => state.user);
+  const { toasts, addToast, dismissToast } = useToast();
 
-  const fetchTickets = useCallback(() => {
-    setLoading(true);
-    complaintsApi
-      .getComplaints()
-      .then(data => {
-        setTickets(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Failed to load supervisor complaints:", err);
-        setLoading(false);
-      });
-  }, []);
-
-  useEffect(() => {
-    fetchTickets();
-  }, [fetchTickets]);
-
-  const addToast = (text: string, type: 'success' | 'info' | 'warning' = 'success') => {
-    const id = crypto.randomUUID();
-    setToasts(prev => [...prev, { id, type, text }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 4000);
-  };
+  const fetchTickets = useCallback(() => complaintsApi.getComplaints(), []);
+  const { data: tickets, loading, reload } = useAsyncData(fetchTickets, EMPTY_TICKETS);
 
   const handleForward = async (ticket: Complaint, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -68,7 +47,7 @@ export default function SupervisorDashboard() {
       
       await complaintsApi.forwardToMaintenance(ticket.id);
       addToast(`Ticket "${ticket.title}" approved & forwarded to Maintenance!`, 'success');
-      fetchTickets();
+      reload();
     } catch (err) {
       addToast((err instanceof Error ? err.message : 'Failed to forward ticket'), 'warning');
     } finally {
@@ -88,7 +67,7 @@ export default function SupervisorDashboard() {
       });
       addToast(`Updated AI recommendations for "${ticket.title}"!`, 'info');
       setEditingTicketId(null);
-      fetchTickets();
+      reload();
     } catch (err) {
       addToast((err instanceof Error ? err.message : 'Failed to save override'), 'warning');
     } finally {
@@ -116,7 +95,7 @@ export default function SupervisorDashboard() {
 
   return (
     <div className={`animate-pop-in ${styles.dashboard}`}>
-      <ToastContainer toasts={toasts} onDismiss={id => setToasts(prev => prev.filter(t => t.id !== id))} />
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
       <div className={styles.headerRow}>
         <div className={styles.header}>
@@ -346,10 +325,11 @@ export default function SupervisorDashboard() {
         </div>
       )}
 
-      <TicketDrawer 
-        ticket={selectedTicket} 
-        onClose={() => setSelectedTicket(null)} 
-        onTicketUpdated={fetchTickets}
+      <TicketDrawer
+        ticket={selectedTicket}
+        onClose={() => setSelectedTicket(null)}
+        onTicketUpdated={reload}
+        onNotify={addToast}
       />
     </div>
   );
