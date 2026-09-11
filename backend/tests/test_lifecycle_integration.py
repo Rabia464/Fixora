@@ -13,86 +13,17 @@ of regression that mocks cannot catch:
 """
 
 import pytest
-import pytest_asyncio
-from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from httpx import AsyncClient
 
-import app.db.models  # noqa: F401  (register model metadata)
-from app.db.models import Role, User
-from app.db.session import Base, get_db
-from app.domain.enums import UserRole
-from app.main import app
-
-
-@pytest_asyncio.fixture
-async def integration_client(tmp_path):
-    db_url = f"sqlite+aiosqlite:///{tmp_path / 'lifecycle.db'}"
-    engine = create_async_engine(db_url)
-    TestSession = async_sessionmaker(engine, expire_on_commit=False)
-
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    # Seed the three demo roles and one user per role.
-    async with TestSession() as session:
-        roles = {
-            role: Role(name=role.value)
-            for role in (
-                UserRole.STUDENT,
-                UserRole.HOSTEL_SUPERVISOR,
-                UserRole.MAINTENANCE_OFFICE,
-            )
-        }
-        session.add_all(roles.values())
-        await session.flush()
-        session.add_all(
-            [
-                User(
-                    email="student@giki.edu.pk",
-                    full_name="Demo Student",
-                    hostel="Hostel A",
-                    role_id=roles[UserRole.STUDENT].id,
-                ),
-                User(
-                    email="supervisor@giki.edu.pk",
-                    full_name="Demo Supervisor",
-                    hostel="Hostel A",
-                    role_id=roles[UserRole.HOSTEL_SUPERVISOR].id,
-                ),
-                User(
-                    email="maintenance@giki.edu.pk",
-                    full_name="Demo Maintenance",
-                    hostel=None,
-                    role_id=roles[UserRole.MAINTENANCE_OFFICE].id,
-                ),
-            ]
-        )
-        await session.commit()
-
-    async def override_get_db():
-        async with TestSession() as session:
-            yield session
-
-    app.dependency_overrides[get_db] = override_get_db
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        yield client
-    app.dependency_overrides.pop(get_db, None)
-    await engine.dispose()
-
-
-async def _login(client: AsyncClient, email: str) -> dict[str, str]:
-    response = await client.post("/api/v1/auth/login", json={"email": email})
-    assert response.status_code == 200, response.text
-    return {"Authorization": f"Bearer {response.json()['access_token']}"}
+# integration_client and auth_headers fixtures live in conftest.py.
 
 
 @pytest.mark.asyncio
-async def test_full_complaint_lifecycle(integration_client: AsyncClient):
+async def test_full_complaint_lifecycle(integration_client: AsyncClient, auth_headers):
     client = integration_client
-    student = await _login(client, "student@giki.edu.pk")
-    supervisor = await _login(client, "supervisor@giki.edu.pk")
-    maintenance = await _login(client, "maintenance@giki.edu.pk")
+    student = await auth_headers("student@giki.edu.pk")
+    supervisor = await auth_headers("supervisor@giki.edu.pk")
+    maintenance = await auth_headers("maintenance@giki.edu.pk")
 
     # 1. Student creates a complaint; AI triage classifies it.
     response = await client.post(
@@ -162,11 +93,11 @@ async def test_full_complaint_lifecycle(integration_client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_reopen_resolved_complaint(integration_client: AsyncClient):
+async def test_reopen_resolved_complaint(integration_client: AsyncClient, auth_headers):
     client = integration_client
-    student = await _login(client, "student@giki.edu.pk")
-    supervisor = await _login(client, "supervisor@giki.edu.pk")
-    maintenance = await _login(client, "maintenance@giki.edu.pk")
+    student = await auth_headers("student@giki.edu.pk")
+    supervisor = await auth_headers("supervisor@giki.edu.pk")
+    maintenance = await auth_headers("maintenance@giki.edu.pk")
 
     create = await client.post(
         "/api/v1/complaints",

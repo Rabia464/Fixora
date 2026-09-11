@@ -1,52 +1,31 @@
 "use client"
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { GlassCard } from '../../../components/GlassCard';
 import { Badge } from '../../../components/Badge';
 import { TicketDrawer } from '../../../components/TicketDrawer';
-import { ToastContainer, ToastMessage } from '../../../components/Toast';
+import { ToastContainer } from '../../../components/Toast';
 import { SkeletonCard } from '../../../components/SkeletonCard';
 import { TicketModal } from '../../../components/TicketModal';
 import { BubblyButton } from '../../../components/BubblyButton';
 import { MapPin, CheckCircle, Clock, GraduationCap, ClipboardList, Zap, AlertCircle, Search, Plus, Filter } from 'lucide-react';
 import { Complaint, complaintsApi } from '../../../lib/api/complaints';
 import { useAuthStore } from '../../../stores/auth-store';
+import { useToast } from '../../../hooks/useToast';
+import { useAsyncData } from '../../../hooks/useAsyncData';
 import styles from './student.module.css';
 
+const EMPTY_TICKETS: Complaint[] = [];
+
 export default function StudentDashboard() {
-  const [tickets, setTickets] = useState<Complaint[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedTicket, setSelectedTicket] = useState<Complaint | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const user = useAuthStore(state => state.user);
+  const { toasts, addToast, dismissToast } = useToast();
 
-  const fetchTickets = useCallback(() => {
-    setLoading(true);
-    complaintsApi
-      .getComplaints()
-      .then(data => {
-        setTickets(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to load complaints:", err);
-        setLoading(false);
-      });
-  }, []);
-
-  useEffect(() => {
-    fetchTickets();
-  }, [fetchTickets]);
-
-  const addToast = (text: string, type: 'success' | 'info' | 'warning' = 'success') => {
-    const id = crypto.randomUUID();
-    setToasts(prev => [...prev, { id, type, text }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 4000);
-  };
+  const fetchTickets = useCallback(() => complaintsApi.getComplaints(), []);
+  const { data: tickets, loading, reload } = useAsyncData(fetchTickets, EMPTY_TICKETS);
 
   const categories = ['All', 'Plumbing', 'Carpentry', 'Electrical', 'Sanitation', 'General'];
 
@@ -60,7 +39,7 @@ export default function StudentDashboard() {
 
   return (
     <div className={`animate-pop-in ${styles.dashboard}`}>
-      <ToastContainer toasts={toasts} onDismiss={id => setToasts(prev => prev.filter(t => t.id !== id))} />
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
       {/* Student Profile Banner */}
       <GlassCard className={styles.profileBanner}>
@@ -195,19 +174,20 @@ export default function StudentDashboard() {
       </div>
 
       {/* Ticket Slide-over Detail Drawer */}
-      <TicketDrawer 
-        ticket={selectedTicket} 
-        onClose={() => setSelectedTicket(null)} 
-        onTicketUpdated={fetchTickets}
+      <TicketDrawer
+        ticket={selectedTicket}
+        onClose={() => setSelectedTicket(null)}
+        onTicketUpdated={reload}
+        onNotify={addToast}
       />
 
       {/* Submit Ticket Modal */}
-      <TicketModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <TicketModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         onSuccess={msg => {
           addToast(msg, 'success');
-          fetchTickets();
+          reload();
         }}
       />
     </div>

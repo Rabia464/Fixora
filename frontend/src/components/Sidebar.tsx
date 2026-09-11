@@ -44,7 +44,11 @@ export const Sidebar: React.FC = () => {
 
   useEffect(() => {
     initialize();
+    // One-time sync of the persisted theme from localStorage on mount. Reading
+    // it during render (lazy init) would risk an SSR hydration mismatch, so we
+    // deliberately set it here.
     const savedTheme = (localStorage.getItem('fixora_theme') as 'light' | 'dark') || 'light';
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(savedTheme);
     document.documentElement.setAttribute('data-theme', savedTheme);
   }, [initialize]);

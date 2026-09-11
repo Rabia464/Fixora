@@ -1,51 +1,30 @@
 "use client"
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { GlassCard } from '../../../components/GlassCard';
 import { BubblyButton } from '../../../components/BubblyButton';
 import { Badge } from '../../../components/Badge';
 import { TicketDrawer } from '../../../components/TicketDrawer';
-import { ToastContainer, ToastMessage } from '../../../components/Toast';
+import { ToastContainer } from '../../../components/Toast';
 import { SkeletonCard } from '../../../components/SkeletonCard';
 import { Wrench, CheckCircle2, MapPin, AlertCircle, Zap, ShieldCheck, Search, Filter, PlayCircle, Clock } from 'lucide-react';
 import { Complaint, complaintsApi } from '../../../lib/api/complaints';
+import { useToast } from '../../../hooks/useToast';
+import { useAsyncData } from '../../../hooks/useAsyncData';
 import styles from './maintenance.module.css';
 
+const EMPTY_TASKS: Complaint[] = [];
+
 export default function MaintenanceDashboard() {
-  const [tasks, setTasks] = useState<Complaint[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPriority, setSelectedPriority] = useState('All');
   const [selectedTicket, setSelectedTicket] = useState<Complaint | null>(null);
-  const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
   const [resolvingTicketId, setResolvingTicketId] = useState<string | null>(null);
   const [resolutionNote, setResolutionNote] = useState('');
+  const { toasts, addToast, dismissToast } = useToast();
 
-  const fetchTasks = useCallback(() => {
-    setLoading(true);
-    complaintsApi
-      .getMaintenanceComplaints()
-      .then(data => {
-        setTasks(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Failed to load maintenance complaints:", err);
-        setLoading(false);
-      });
-  }, []);
-
-  useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks]);
-
-  const addToast = (text: string, type: 'success' | 'info' | 'warning' = 'success') => {
-    const id = crypto.randomUUID();
-    setToasts(prev => [...prev, { id, type, text }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 4000);
-  };
+  const fetchTasks = useCallback(() => complaintsApi.getMaintenanceComplaints(), []);
+  const { data: tasks, loading, reload } = useAsyncData(fetchTasks, EMPTY_TASKS);
 
   const handleStartWork = async (task: Complaint, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -53,7 +32,7 @@ export default function MaintenanceDashboard() {
     try {
       await complaintsApi.updateProgress(task.id, { note: 'Technician dispatched on site' });
       addToast(`Work started on ticket "${task.title}"!`, 'info');
-      fetchTasks();
+      reload();
     } catch (err) {
       addToast((err instanceof Error ? err.message : 'Failed to update progress'), 'warning');
     } finally {
@@ -79,7 +58,7 @@ export default function MaintenanceDashboard() {
       await complaintsApi.resolveComplaint(task.id, { resolution_note: resolutionNote });
       addToast(`Task "${task.title}" marked resolved!`, 'success');
       setResolvingTicketId(null);
-      fetchTasks();
+      reload();
     } catch (err) {
       addToast((err instanceof Error ? err.message : 'Failed to resolve task'), 'warning');
     } finally {
@@ -101,7 +80,7 @@ export default function MaintenanceDashboard() {
 
   return (
     <div className={`animate-pop-in ${styles.dashboard}`}>
-      <ToastContainer toasts={toasts} onDismiss={id => setToasts(prev => prev.filter(t => t.id !== id))} />
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
       <div className={styles.headerRow}>
         <div className={styles.header}>
@@ -249,7 +228,8 @@ export default function MaintenanceDashboard() {
       <TicketDrawer 
         ticket={selectedTicket} 
         onClose={() => setSelectedTicket(null)} 
-        onTicketUpdated={fetchTasks}
+        onTicketUpdated={reload}
+        onNotify={addToast}
       />
     </div>
   );
