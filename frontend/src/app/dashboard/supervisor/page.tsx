@@ -76,7 +76,7 @@ export default function SupervisorDashboard() {
   };
 
   const pendingTickets = tickets.filter(t => t.status === 'Open' || t.status === 'UnderReview' || t.status === 'Reopened');
-  const categories = ['All', 'Plumbing', 'Carpentry', 'Electrical', 'Sanitation', 'General'];
+  const categories = ['All', 'Plumbing', 'Furniture', 'Electrical', 'Sanitation', 'General'];
 
   const filteredTickets = pendingTickets.filter(ticket => {
     const category = ticket.overridden_category || ticket.ai_category || 'General';
