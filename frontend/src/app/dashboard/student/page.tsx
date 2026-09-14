@@ -27,7 +27,7 @@ export default function StudentDashboard() {
   const fetchTickets = useCallback(() => complaintsApi.getComplaints(), []);
   const { data: tickets, loading, reload } = useAsyncData(fetchTickets, EMPTY_TICKETS);
 
-  const categories = ['All', 'Plumbing', 'Carpentry', 'Electrical', 'Sanitation', 'General'];
+  const categories = ['All', 'Plumbing', 'Furniture', 'Electrical', 'Sanitation', 'General'];
 
   const filteredTickets = tickets.filter(ticket => {
     const category = ticket.overridden_category || ticket.ai_category || 'General';
