@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import type { DocumentData, Query, QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { db } from '../firebase/admin';
 import type { ComplaintPriority, ComplaintStatus, RoleName } from './workflow';
 
@@ -86,7 +87,7 @@ export async function getUserById(id: string): Promise<UserDoc | null> {
 
 export async function getUsersByRole(role: RoleName): Promise<UserDoc[]> {
   const snap = await users().where('role.name', '==', role).get();
-  return snap.docs.map((d) => d.data() as UserDoc);
+  return snap.docs.map((d: QueryDocumentSnapshot) => d.data() as UserDoc);
 }
 
 export async function getSupervisorByHostel(hostel: string): Promise<UserDoc | null> {
@@ -105,14 +106,14 @@ export async function getComplaints(filters: {
   hostel?: string;
   createdBy?: string;
 } = {}): Promise<ComplaintDoc[]> {
-  let query: FirebaseFirestore.Query = complaints();
+  let query: Query = complaints();
   if (filters.status) query = query.where('status', '==', filters.status);
   if (filters.hostel) query = query.where('hostel', '==', filters.hostel);
   if (filters.createdBy) query = query.where('created_by', '==', filters.createdBy);
 
   // Sorted in memory so equality filters don't each need a composite index.
   const snap = await query.get();
-  return snap.docs.map((d) => d.data() as ComplaintDoc).sort(byCreatedDesc);
+  return snap.docs.map((d: QueryDocumentSnapshot) => d.data() as ComplaintDoc).sort(byCreatedDesc);
 }
 
 export async function getComplaintById(id: string): Promise<ComplaintDoc | null> {
@@ -141,7 +142,7 @@ export async function addAuditLog(
 
 export async function getAuditLogs(complaintId: string): Promise<AuditLogDoc[]> {
   const snap = await auditLogs().where('complaint_id', '==', complaintId).get();
-  return snap.docs.map((d) => d.data() as AuditLogDoc).sort(byCreatedAsc);
+  return snap.docs.map((d: QueryDocumentSnapshot) => d.data() as AuditLogDoc).sort(byCreatedAsc);
 }
 
 // -------------------------------------------------------- notifications
@@ -172,7 +173,7 @@ export async function getNotifications(userId: string): Promise<NotificationDoc[
     .where('user_id', '==', userId)
     .where('is_read', '==', false)
     .get();
-  return snap.docs.map((d) => d.data() as NotificationDoc).sort(byCreatedDesc);
+  return snap.docs.map((d: QueryDocumentSnapshot) => d.data() as NotificationDoc).sort(byCreatedDesc);
 }
 
 export async function markAllNotificationsRead(userId: string): Promise<void> {
@@ -182,6 +183,6 @@ export async function markAllNotificationsRead(userId: string): Promise<void> {
     .get();
   if (snap.empty) return;
   const batch = db.batch();
-  snap.docs.forEach((doc) => batch.update(doc.ref, { is_read: true }));
+  snap.docs.forEach((doc: QueryDocumentSnapshot<DocumentData>) => batch.update(doc.ref, { is_read: true }));
   await batch.commit();
 }
