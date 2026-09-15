@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: fixora-backend
+    env: docker
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fixora-db
+          property: connectionString
+      - key: BACKEND_CORS_ORIGINS
+        # Update this to match your Vercel frontend URL once deployed
+        value: "http://localhost:3000,https://fixora-YOUR-APP.vercel.app"
+      - key: JWT_SECRET_KEY
+        generateValue: true
+
+databases:
+  - name: fixora-db
+    databaseName: fixora
+    user: fixora_user
