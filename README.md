@@ -4,12 +4,23 @@
 
 ---
 
+**Live:** https://fixora-portal.vercel.app
+
+---
+
 ## Architecture Overview
 
+Fixora ships as a single Next.js app on Vercel. The UI and the API live in the
+same deployment; data is in Cloud Firestore.
+
 - **Frontend:** Next.js 16 (App Router) + React 19, TypeScript, Zustand state management, Glassmorphic CSS design system, Lucide icons.
-- **Backend:** FastAPI (Python 3.11+ / 3.12), SQLAlchemy 2.0 (asyncio + asyncpg), Pydantic v2 validation, JWT-based RBAC authentication.
-- **Persistence & Migration:** Dialect-agnostic SQLAlchemy models — runs on a zero-dependency **SQLite** file by default (auto-created tables), or **PostgreSQL 16** with composite indexes and Alembic async migrations for production.
-- **AI Triage Module:** Rule-based heuristics classifier automatically assigning category (`Plumbing`, `Electrical`, `Furniture`, `Sanitation`), priority (`Low`, `Medium`, `High`, `Critical`), and destination department (`Maintenance`, etc.).
+- **API:** Next.js route handlers under `frontend/src/app/api/v1/**`, backed by `firebase-admin` / Firestore. Business rules live in `frontend/src/lib/server/`:
+  - `workflow.ts` — the complaint state machine and role table (every transition is checked; illegal ones return `409`).
+  - `complaints.ts` — lifecycle service: role + hostel/ownership scoping, audit trail, notifications.
+  - `auth.ts` — HS256-signed access tokens (`jose`), role re-validated on every request.
+  - `db.ts` — Firestore access. No silent fallback: if Firestore is down, requests fail with `500`.
+- **AI Triage Module:** Rule-based heuristics classifier (`frontend/src/lib/ai/classifier.ts`) assigning category (`Plumbing`, `Electrical`, `Furniture`, `Sanitation`), priority (`Low`, `Medium`, `High`, `Critical`), and destination department.
+- **Reference backend (`backend/`):** the original FastAPI + SQLAlchemy implementation of the same API. It is **not deployed**; the Firestore service mirrors its rules and is tested against the same transition table. Keep it if you want to self-host on Postgres/SQLite; otherwise it can be removed.
 
 ---
 
@@ -39,26 +50,47 @@
 
 ## Quickstart Guide
 
-### 1. Run via Docker Compose (Recommended)
+### 1. Run the deployed stack locally (Next.js + Firestore)
 
-Start the entire stack (Postgres + FastAPI Backend + Next.js Frontend) with a single command:
+```bash
+cd frontend
+npm install
+cp .env.example .env.local           # fill in JWT_SECRET
+# drop a Firebase service-account JSON at frontend/serviceAccountKey.json
+#   (Firebase console → Project settings → Service accounts → Generate new private key)
+npm run seed -- --reset              # demo users + sample complaints
+npm run dev                          # http://localhost:3000
+```
+
+`npm run seed` upserts the three demo users and, with `--reset`, wipes and
+re-creates the sample complaints, audit log and notifications.
+
+#### Deploying to Vercel
+
+The project is linked to the `fixora-portal` Vercel project. Required env vars:
+
+| Variable | Purpose |
+| :--- | :--- |
+| `FIREBASE_SERVICE_ACCOUNT_KEY` | The service-account JSON, as one line |
+| `JWT_SECRET` | ≥ 32 random chars (`openssl rand -base64 48`) — token signing |
+
+```bash
+cd frontend
+npx vercel --prod
+```
+
+---
+
+### 2. Run the reference FastAPI backend instead (optional)
+
+The Python backend implements the same API on SQLite (default) or PostgreSQL.
+Point the UI at it with `NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1`.
+
+#### Via Docker Compose
 
 ```bash
 docker compose up --build
 ```
-
-- **Frontend:** [http://localhost:3000](http://localhost:3000)
-- **Backend API:** [http://localhost:8000](http://localhost:8000)
-- **Interactive OpenAPI Docs:** [http://localhost:8000/api/v1/openapi.json](http://localhost:8000/api/v1/openapi.json)
-
----
-
-### 2. Run Locally for Development
-
-By default the backend runs on a **zero-dependency local SQLite file** — no
-database server, no migrations, nothing to install or host. To use PostgreSQL
-instead (e.g. for production), set the `POSTGRES_*` variables in `backend/.env`
-(see `backend/.env.example`) and run `alembic upgrade head`.
 
 #### A. Start Backend (SQLite — default)
 ```bash
@@ -96,7 +128,7 @@ python -m app.db.seed
 
 ## Demo Accounts
 
-Passwordless authentication is enabled in development. You can log in directly using the quick-role buttons on `/login` or with the following emails:
+Authentication is email-only (no passwords) — this is a demo system. Log in with the quick-role buttons on `/login` or with the following emails. Tokens are signed and expire after 8 hours.
 
 | Role | Email | Assigned Hostel | Dashboard Route |
 | :--- | :--- | :--- | :--- |
@@ -108,12 +140,22 @@ Passwordless authentication is enabled in development. You can log in directly u
 
 ## Running Tests
 
-Run the backend unit and integration test suite:
+API / workflow tests (state machine, role & scope guards, token signing):
+
+```bash
+cd frontend
+npm test
+```
+
+Reference backend suite:
 
 ```bash
 cd backend
 ./venv/bin/pytest tests/ -v
 ```
+
+CI runs lint, type-check, tests and a production build for the frontend, and
+ruff / mypy / pytest for the backend.
 
 ---
 
@@ -138,11 +180,17 @@ Fixora/
 │   │   └── main.py             # FastAPI app factory & standardized exception handlers
 │   └── tests/                  # Pytest test suite
 ├── frontend/
+│   ├── scripts/seed.mjs        # Firestore seeding (demo users, sample complaints)
 │   ├── src/
 │   │   ├── app/                # Next.js App Router pages (login, dashboards, about)
+│   │   ├── app/api/v1/         # API route handlers (thin wrappers over lib/server)
 │   │   ├── components/         # Glassmorphic UI components, Modals, Drawers
-│   │   ├── lib/api/            # Typed API client layer connecting to FastAPI
+│   │   ├── lib/ai/             # Rule-based triage classifier
+│   │   ├── lib/api/            # Typed API client used by the UI
+│   │   ├── lib/firebase/       # firebase-admin initialisation
+│   │   ├── lib/server/         # workflow, complaints service, auth, db (+ tests)
 │   │   ├── middleware.ts       # Route protection & RBAC redirection
 │   │   └── stores/             # Zustand auth store
-└── docker-compose.yml          # Full-stack Docker orchestration
+│   └── vercel.json
+└── docker-compose.yml          # Reference backend orchestration (Postgres + FastAPI + UI)
 ```

@@ -54,7 +54,7 @@ class Settings(BaseSettings):
                 v = v.replace("postgresql://", "postgresql+asyncpg://", 1)
             return v
         data = info.data
-        
+
         # Support Render's default DATABASE_URL
         database_url = data.get("DATABASE_URL")
         if database_url:
