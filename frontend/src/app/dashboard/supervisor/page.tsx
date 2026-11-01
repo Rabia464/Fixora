@@ -9,6 +9,7 @@ import { ToastContainer } from '../../../components/Toast';
 import { SkeletonCard } from '../../../components/SkeletonCard';
 import { FileWarning, Sparkles, MapPin, ArrowRight, ShieldCheck, Search, Filter, LayoutGrid, BarChart2, Edit3 } from 'lucide-react';
 import { Complaint, ComplaintPriority, complaintsApi } from '../../../lib/api/complaints';
+import { CATEGORIES, departmentFor } from '../../../lib/domain/complaint';
 import { useAuthStore } from '../../../stores/auth-store';
 import { useToast } from '../../../hooks/useToast';
 import { useAsyncData } from '../../../hooks/useAsyncData';
@@ -58,11 +59,12 @@ export default function SupervisorDashboard() {
   const handleSaveOverride = async (ticket: Complaint, e: React.MouseEvent) => {
     e.stopPropagation();
     setActionInProgress(ticket.id);
+    const category = overrideCategory || ticket.ai_category || 'General';
     try {
       await complaintsApi.supervisorReview(ticket.id, {
-        category: overrideCategory || ticket.ai_category || 'General',
+        category,
         priority: overridePriority,
-        department: 'Maintenance',
+        department: departmentFor(category),
         override: true,
       });
       addToast(`Updated AI recommendations for "${ticket.title}"!`, 'info');
@@ -76,7 +78,7 @@ export default function SupervisorDashboard() {
   };
 
   const pendingTickets = tickets.filter(t => t.status === 'Open' || t.status === 'UnderReview' || t.status === 'Reopened');
-  const categories = ['All', 'Plumbing', 'Furniture', 'Electrical', 'Sanitation', 'General'];
+  const categories = ['All', ...CATEGORIES];
 
   const filteredTickets = pendingTickets.filter(ticket => {
     const category = ticket.overridden_category || ticket.ai_category || 'General';

@@ -1,60 +1,51 @@
-export type ComplaintPriority = 'Low' | 'Medium' | 'High' | 'Critical';
+import {
+  CATEGORY_DEPARTMENT,
+  DEFAULT_CATEGORY,
+  DEFAULT_PRIORITY,
+  type ComplaintCategory,
+  type ComplaintPriority,
+} from '../domain/complaint';
 
 export interface AIPrediction {
-  category: string;
+  category: ComplaintCategory;
   priority: ComplaintPriority;
   department: string;
 }
 
-export class AIService {
-  /**
-   * Rule-based recommendation engine for complaint classification.
-   * Analyzes title and description to predict category, priority, and routing department.
-   */
-  public predict(title: string, description: string): AIPrediction {
-    try {
-      const text = `${title} ${description}`.toLowerCase();
-
-      let category = 'General';
-      let department = 'Maintenance';
-
-      if (['leak', 'pipe', 'water', 'drain', 'tap', 'toilet', 'washroom'].some((kw) => text.includes(kw))) {
-        category = 'Plumbing';
-        department = 'Plumbing';
-      } else if (['power', 'electric', 'light', 'socket', 'wire', 'fan', 'short circuit'].some((kw) => text.includes(kw))) {
-        category = 'Electrical';
-        department = 'Electrical';
-      } else if (['door', 'window', 'bed', 'chair', 'furniture', 'lock'].some((kw) => text.includes(kw))) {
-        category = 'Furniture';
-        department = 'Maintenance';
-      } else if (['clean', 'garbage', 'pest', 'insect', 'rodent'].some((kw) => text.includes(kw))) {
-        category = 'Sanitation';
-        department = 'Sanitation';
-      }
-
-      let priority: ComplaintPriority = 'Medium';
-
-      if (['fire', 'gas', 'spark', 'flood', 'emergency', 'short circuit'].some((kw) => text.includes(kw))) {
-        priority = 'Critical';
-      } else if (['leak', 'no water', 'no power', 'broken', 'unsafe'].some((kw) => text.includes(kw))) {
-        priority = 'High';
-      } else if (['slow', 'minor', 'small'].some((kw) => text.includes(kw))) {
-        priority = 'Low';
-      }
-
-      return {
-        category,
-        priority,
-        department,
-      };
-    } catch {
-      return {
-        category: 'General',
-        priority: 'Medium',
-        department: 'Maintenance',
-      };
-    }
-  }
+/**
+ * Builds a matcher for whole words (plus common English suffixes), so "tap"
+ * matches "taps" but not "laptop", and "bed" matches "beds" but not "bedroom".
+ */
+function wordMatcher(keywords: string[]): RegExp {
+  const escaped = keywords.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/ /g, '\\s+'));
+  return new RegExp(`\\b(?:${escaped.join('|')})(?:s|es|ed|ing|age|al|ity|y)?\\b`, 'i');
 }
 
-export const aiService = new AIService();
+/** First matching rule wins, so order matters. */
+const CATEGORY_RULES: [ComplaintCategory, RegExp][] = [
+  ['Plumbing', wordMatcher(['leak', 'pipe', 'water', 'drain', 'tap', 'toilet', 'washroom', 'flush', 'shower'])],
+  ['Electrical', wordMatcher(['power', 'electric', 'electrical', 'light', 'socket', 'wire', 'wiring', 'fan', 'short circuit', 'switch', 'bulb'])],
+  ['Furniture', wordMatcher(['door', 'window', 'bed', 'chair', 'table', 'furniture', 'lock', 'cupboard', 'wardrobe'])],
+  ['Sanitation', wordMatcher(['clean', 'garbage', 'trash', 'pest', 'insect', 'rodent', 'cockroach', 'smell'])],
+];
+
+const PRIORITY_RULES: [ComplaintPriority, RegExp][] = [
+  ['Critical', wordMatcher(['fire', 'gas', 'spark', 'flood', 'emergency', 'short circuit'])],
+  ['High', wordMatcher(['leak', 'no water', 'no power', 'broken', 'unsafe'])],
+  ['Low', wordMatcher(['slow', 'minor', 'small'])],
+];
+
+function firstMatch<T>(rules: [T, RegExp][], text: string, fallback: T): T {
+  return rules.find(([, re]) => re.test(text))?.[0] ?? fallback;
+}
+
+/** Rule-based triage: predicts category, priority and routing department. */
+export function classifyComplaint(title: string, description: string): AIPrediction {
+  const text = `${title} ${description}`;
+  const category = firstMatch(CATEGORY_RULES, text, DEFAULT_CATEGORY);
+  return {
+    category,
+    priority: firstMatch(PRIORITY_RULES, text, DEFAULT_PRIORITY),
+    department: CATEGORY_DEPARTMENT[category],
+  };
+}

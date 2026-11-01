@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import type { DocumentData, Query, QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { db } from '../firebase/admin';
-import type { ComplaintPriority, ComplaintStatus, RoleName } from './workflow';
+import type { Complaint, ComplaintStatus, RoleName } from '../domain/complaint';
 
 /**
  * Firestore data access. No fallback store: if Firestore is unreachable the
@@ -20,27 +20,7 @@ export interface UserDoc {
   updated_at: string;
 }
 
-export interface ComplaintDoc {
-  id: string;
-  title: string;
-  description: string;
-  location: string;
-  hostel: string;
-  status: ComplaintStatus;
-  ai_category: string | null;
-  ai_priority: ComplaintPriority | null;
-  ai_department: string | null;
-  supervisor_override: boolean;
-  overridden_category: string | null;
-  overridden_priority: ComplaintPriority | null;
-  overridden_department: string | null;
-  created_by: string;
-  supervisor_id: string | null;
-  resolution_notes?: string | null;
-  reopen_reason?: string | null;
-  created_at: string;
-  updated_at: string;
-}
+export type ComplaintDoc = Complaint;
 
 export interface AuditLogDoc {
   id: string;
@@ -103,11 +83,14 @@ export async function getSupervisorByHostel(hostel: string): Promise<UserDoc | n
 
 export async function getComplaints(filters: {
   status?: ComplaintStatus;
+  /** Matches any of these statuses (Firestore `in`, max 30 values). */
+  statusIn?: readonly ComplaintStatus[];
   hostel?: string;
   createdBy?: string;
 } = {}): Promise<ComplaintDoc[]> {
   let query: Query = complaints();
   if (filters.status) query = query.where('status', '==', filters.status);
+  else if (filters.statusIn) query = query.where('status', 'in', [...filters.statusIn]);
   if (filters.hostel) query = query.where('hostel', '==', filters.hostel);
   if (filters.createdBy) query = query.where('created_by', '==', filters.createdBy);
 
@@ -119,6 +102,28 @@ export async function getComplaints(filters: {
 export async function getComplaintById(id: string): Promise<ComplaintDoc | null> {
   const doc = await complaints().doc(id).get();
   return doc.exists ? (doc.data() as ComplaintDoc) : null;
+}
+
+/**
+ * Read-check-write a complaint atomically. `mutate` sees the current document,
+ * may throw to abort (e.g. an illegal transition), and returns the new one.
+ * Runs in a Firestore transaction, so two concurrent requests can't both pass
+ * the same transition check; Firestore may retry `mutate`, so keep it pure.
+ * Returns null if the complaint does not exist.
+ */
+export async function updateComplaint(
+  id: string,
+  mutate: (current: ComplaintDoc) => ComplaintDoc
+): Promise<{ before: ComplaintDoc; after: ComplaintDoc } | null> {
+  const ref = complaints().doc(id);
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) return null;
+    const before = snap.data() as ComplaintDoc;
+    const after = mutate(before);
+    tx.set(ref, after);
+    return { before, after };
+  });
 }
 
 export async function saveComplaint(complaint: ComplaintDoc): Promise<ComplaintDoc> {

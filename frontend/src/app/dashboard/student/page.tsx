@@ -9,6 +9,7 @@ import { TicketModal } from '../../../components/TicketModal';
 import { BubblyButton } from '../../../components/BubblyButton';
 import { MapPin, CheckCircle, Clock, GraduationCap, ClipboardList, Zap, AlertCircle, Search, Plus, Filter } from 'lucide-react';
 import { Complaint, complaintsApi } from '../../../lib/api/complaints';
+import { CATEGORIES } from '../../../lib/domain/complaint';
 import { useAuthStore } from '../../../stores/auth-store';
 import { useToast } from '../../../hooks/useToast';
 import { useAsyncData } from '../../../hooks/useAsyncData';
@@ -27,7 +28,7 @@ export default function StudentDashboard() {
   const fetchTickets = useCallback(() => complaintsApi.getComplaints(), []);
   const { data: tickets, loading, reload } = useAsyncData(fetchTickets, EMPTY_TICKETS);
 
-  const categories = ['All', 'Plumbing', 'Furniture', 'Electrical', 'Sanitation', 'General'];
+  const categories = ['All', ...CATEGORIES];
 
   const filteredTickets = tickets.filter(ticket => {
     const category = ticket.overridden_category || ticket.ai_category || 'General';

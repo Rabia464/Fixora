@@ -7,22 +7,16 @@
  *                                                        \-> Reopened -> UnderReview ...
  */
 
-export const COMPLAINT_STATUSES = [
-  'Open',
-  'UnderReview',
-  'Forwarded',
-  'InProgress',
-  'Resolved',
-  'Closed',
-  'Reopened',
-] as const;
-export type ComplaintStatus = (typeof COMPLAINT_STATUSES)[number];
+import type { ComplaintStatus, RoleName } from '../domain/complaint';
 
-export const PRIORITIES = ['Low', 'Medium', 'High', 'Critical'] as const;
-export type ComplaintPriority = (typeof PRIORITIES)[number];
-
-export const ROLES = ['Student', 'Hostel Supervisor', 'Maintenance Office'] as const;
-export type RoleName = (typeof ROLES)[number];
+export {
+  COMPLAINT_STATUSES,
+  PRIORITIES,
+  ROLES,
+  isPriority,
+  isStatus,
+} from '../domain/complaint';
+export type { ComplaintPriority, ComplaintStatus, RoleName } from '../domain/complaint';
 
 export const AuditAction = {
   TICKET_CREATED: 'TicketCreated',
@@ -127,12 +121,4 @@ export function assertRole(action: WorkflowAction, role: RoleName): void {
   if (role !== rule.role) {
     throw new WorkflowError(`Only ${rule.role} users can perform this action.`, 403);
   }
-}
-
-export function isPriority(value: unknown): value is ComplaintPriority {
-  return typeof value === 'string' && (PRIORITIES as readonly string[]).includes(value);
-}
-
-export function isStatus(value: unknown): value is ComplaintStatus {
-  return typeof value === 'string' && (COMPLAINT_STATUSES as readonly string[]).includes(value);
 }

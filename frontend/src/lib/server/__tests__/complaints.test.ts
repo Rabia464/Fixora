@@ -15,7 +15,16 @@ vi.mock('../db', () => ({
     store.complaints.set(c.id, c);
     return c;
   }),
-  getComplaints: vi.fn(async () => Array.from(store.complaints.values())),
+  updateComplaint: vi.fn(async (id: string, mutate: (c: ComplaintDoc) => ComplaintDoc) => {
+    const before = store.complaints.get(id);
+    if (!before) return null;
+    const after = mutate(before);
+    store.complaints.set(id, after);
+    return { before, after };
+  }),
+  getComplaints: vi.fn(async (f: { statusIn?: readonly string[] } = {}) =>
+    Array.from(store.complaints.values()).filter((c) => !f.statusIn || f.statusIn.includes(c.status))
+  ),
   addAuditLog: vi.fn(async (log: (typeof store.audit)[number]) => {
     store.audit.push(log);
     return log;
@@ -36,6 +45,7 @@ import {
   createComplaint,
   forwardToMaintenance,
   getVisibleComplaint,
+  listMaintenanceQueue,
   reopenComplaint,
   resolveComplaint,
   supervisorReview,
@@ -124,6 +134,16 @@ describe('full lifecycle', () => {
   });
 });
 
+describe('maintenance queue', () => {
+  it('only lists complaints that reached maintenance', async () => {
+    const c = await seedOpen();
+    expect(await listMaintenanceQueue(maintenance)).toEqual([]);
+    await supervisorReview(c.id, review, supervisor);
+    await forwardToMaintenance(c.id, supervisor);
+    expect((await listMaintenanceQueue(maintenance)).map((x) => x.id)).toEqual([c.id]);
+  });
+});
+
 describe('state guards (409)', () => {
   it('student cannot close an Open complaint', async () => {
     const c = await seedOpen();
@@ -147,6 +167,16 @@ describe('state guards (409)', () => {
   it('cannot reopen an in-flight complaint', async () => {
     const c = await seedOpen();
     await expect(reopenComplaint(c.id, 'why', student)).rejects.toMatchObject({ status: 409 });
+  });
+
+  it('a rejected mutation leaves the stored complaint untouched', async () => {
+    const c = await seedOpen();
+    await supervisorReview(c.id, review, supervisor);
+    await forwardToMaintenance(c.id, supervisor);
+    await updateProgress(c.id, null, maintenance);
+    const before = store.complaints.get(c.id);
+    await expect(resolveComplaint(c.id, '  ', maintenance)).rejects.toMatchObject({ status: 400 });
+    expect(store.complaints.get(c.id)).toBe(before);
   });
 
   it('writes nothing when a transition is rejected', async () => {
