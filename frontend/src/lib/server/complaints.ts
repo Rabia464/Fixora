@@ -17,6 +17,8 @@ import {
   assertTransition,
   AuditAction,
   ComplaintStatus,
+  isCategory,
+  isDepartment,
   isPriority,
   MAINTENANCE_VISIBLE_STATUSES,
   NotificationType,
@@ -35,6 +37,26 @@ import { effectiveDepartment } from '../domain/complaint';
  */
 
 const now = () => new Date().toISOString();
+
+/** Upper bounds on free-text fields, so one request can't store megabytes. */
+export const LIMITS = {
+  title: 150,
+  description: 5000,
+  location: 200,
+  note: 2000,
+} as const;
+
+/**
+ * Trims a free-text field and enforces its length. Returns null when the value
+ * is missing or blank; callers decide whether that is an error.
+ */
+function text(value: unknown, field: string, max: number): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (trimmed.length > max) throw badRequest(`${field} must be at most ${max} characters.`);
+  return trimmed;
+}
 
 function requireHostel(user: UserDoc, label: string): string {
   if (!user.hostel) throw new HttpError(422, `${label} has no hostel assigned.`);
@@ -150,12 +172,10 @@ export async function createComplaint(input: CreateInput, user: UserDoc): Promis
   if (user.role.name !== 'Student') throw forbidden('Only students can file complaints.');
   const hostel = requireHostel(user, 'Student');
 
-  const { title, description, location } = input;
-  if (
-    typeof title !== 'string' || !title.trim() ||
-    typeof description !== 'string' || !description.trim() ||
-    typeof location !== 'string' || !location.trim()
-  ) {
+  const title = text(input.title, 'Title', LIMITS.title);
+  const description = text(input.description, 'Description', LIMITS.description);
+  const location = text(input.location, 'Location', LIMITS.location);
+  if (!title || !description || !location) {
     throw badRequest('Title, description, and location are required.');
   }
 
@@ -165,9 +185,9 @@ export async function createComplaint(input: CreateInput, user: UserDoc): Promis
 
   const complaint: ComplaintDoc = {
     id: newComplaintId(),
-    title: title.trim(),
-    description: description.trim(),
-    location: location.trim(),
+    title,
+    description,
+    location,
     hostel,
     status: 'Open',
     ai_category: prediction.category,
@@ -223,9 +243,8 @@ export async function supervisorReview(
 
   const { updated, nextStatus, previous } = await transition('review', id, user, (complaint) => {
     assertSupervisorScope(complaint, user);
-    if (typeof category !== 'string' || !category || typeof department !== 'string' || !department) {
-      throw badRequest('category and department are required.');
-    }
+    if (!isCategory(category)) throw badRequest('category is not a recognised complaint category.');
+    if (!isDepartment(department)) throw badRequest('department is not a recognised department.');
     if (!isPriority(priority)) throw badRequest('priority must be Low, Medium, High or Critical.');
     return {
       ...complaint,
@@ -277,7 +296,7 @@ export async function updateProgress(
   note: unknown,
   user: UserDoc
 ): Promise<ComplaintDoc> {
-  const progressNote = typeof note === 'string' && note.trim() ? note.trim() : null;
+  const progressNote = text(note, 'Note', LIMITS.note);
   const { updated, nextStatus, previous } = await transition('progress', id, user, (c) => c);
   await audit(AuditAction.STATUS_UPDATED, user, updated, {
     previous_status: previous,
@@ -298,7 +317,7 @@ export async function resolveComplaint(
   resolutionNote: unknown,
   user: UserDoc
 ): Promise<ComplaintDoc> {
-  const resolution_note = typeof resolutionNote === 'string' ? resolutionNote.trim() : '';
+  const resolution_note = text(resolutionNote, 'Resolution note', LIMITS.note);
   const { updated, nextStatus, previous } = await transition('resolve', id, user, (complaint) => {
     if (!resolution_note) throw badRequest('Resolution note is required.');
     return { ...complaint, resolution_notes: resolution_note };
@@ -344,7 +363,7 @@ export async function reopenComplaint(
   reason: unknown,
   user: UserDoc
 ): Promise<ComplaintDoc> {
-  const reopen_reason = typeof reason === 'string' ? reason.trim() : '';
+  const reopen_reason = text(reason, 'Reopen reason', LIMITS.note);
   const { updated, nextStatus, previous } = await transition('reopen', id, user, (complaint) => {
     assertOwner(complaint, user);
     if (!reopen_reason) throw badRequest('Reopen reason is required.');

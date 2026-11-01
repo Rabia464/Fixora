@@ -10,9 +10,13 @@
 import type { ComplaintStatus, RoleName } from '../domain/complaint';
 
 export {
+  CATEGORIES,
   COMPLAINT_STATUSES,
+  DEPARTMENTS,
   PRIORITIES,
   ROLES,
+  isCategory,
+  isDepartment,
   isPriority,
   isStatus,
 } from '../domain/complaint';

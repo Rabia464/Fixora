@@ -24,6 +24,9 @@ export type RoleName = (typeof ROLES)[number];
 export const CATEGORIES = ['Plumbing', 'Electrical', 'Furniture', 'Sanitation', 'General'] as const;
 export type ComplaintCategory = (typeof CATEGORIES)[number];
 
+export const DEPARTMENTS = ['Plumbing', 'Electrical', 'Sanitation', 'Maintenance'] as const;
+export type ComplaintDepartment = (typeof DEPARTMENTS)[number];
+
 /** Which department handles each category. */
 export const CATEGORY_DEPARTMENT: Record<ComplaintCategory, string> = {
   Plumbing: 'Plumbing',
@@ -47,6 +50,10 @@ export function isStatus(value: unknown): value is ComplaintStatus {
 
 export function isCategory(value: unknown): value is ComplaintCategory {
   return typeof value === 'string' && (CATEGORIES as readonly string[]).includes(value);
+}
+
+export function isDepartment(value: unknown): value is ComplaintDepartment {
+  return typeof value === 'string' && (DEPARTMENTS as readonly string[]).includes(value);
 }
 
 export function departmentFor(category: string): string {

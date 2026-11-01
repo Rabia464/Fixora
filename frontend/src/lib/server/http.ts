@@ -38,10 +38,34 @@ export function route<C = unknown>(handler: Handler<C>): Handler<C> {
   };
 }
 
+/** Largest JSON body any endpoint accepts. The biggest legit payload is a complaint (~5 KB). */
+export const MAX_BODY_BYTES = 32 * 1024;
+
+/**
+ * Parses a JSON object body. Rejects bodies over MAX_BODY_BYTES with 413 and
+ * anything that isn't a JSON object with 400, so handlers only ever see a
+ * plain object.
+ */
 export async function readJson<T = Record<string, unknown>>(request: Request): Promise<T> {
-  try {
-    return (await request.json()) as T;
-  } catch {
-    return {} as T;
+  const declared = Number(request.headers.get('content-length'));
+  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) {
+    throw new HttpError(413, 'Request body too large.');
   }
+
+  const raw = await request.text();
+  if (new TextEncoder().encode(raw).length > MAX_BODY_BYTES) {
+    throw new HttpError(413, 'Request body too large.');
+  }
+  if (!raw.trim()) return {} as T;
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw badRequest('Request body must be valid JSON.');
+  }
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    throw badRequest('Request body must be a JSON object.');
+  }
+  return parsed as T;
 }

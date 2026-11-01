@@ -43,6 +43,7 @@ vi.mock('../db', () => ({
 import {
   confirmResolution,
   createComplaint,
+  LIMITS,
   forwardToMaintenance,
   getVisibleComplaint,
   listMaintenanceQueue,
@@ -242,6 +243,33 @@ describe('validation (400/404)', () => {
     await expect(resolveComplaint(c.id, '   ', maintenance)).rejects.toMatchObject({ status: 400 });
     await resolveComplaint(c.id, 'ok', maintenance);
     await expect(reopenComplaint(c.id, '', student)).rejects.toMatchObject({ status: 400 });
+  });
+
+  it('rejects oversized text fields', async () => {
+    const long = (n: number) => 'x'.repeat(n + 1);
+    await expect(
+      createComplaint({ title: long(LIMITS.title), description: 'd', location: 'l' }, student)
+    ).rejects.toMatchObject({ status: 400 });
+    await expect(
+      createComplaint({ title: 't', description: long(LIMITS.description), location: 'l' }, student)
+    ).rejects.toMatchObject({ status: 400 });
+    const c = await seedOpen();
+    await supervisorReview(c.id, review, supervisor);
+    await forwardToMaintenance(c.id, supervisor);
+    await expect(updateProgress(c.id, long(LIMITS.note), maintenance)).rejects.toMatchObject({
+      status: 400,
+    });
+  });
+
+  it('only accepts known categories and departments', async () => {
+    const c = await seedOpen();
+    await expect(
+      supervisorReview(c.id, { ...review, category: '<script>' }, supervisor)
+    ).rejects.toMatchObject({ status: 400 });
+    await expect(
+      supervisorReview(c.id, { ...review, department: 'Finance' }, supervisor)
+    ).rejects.toMatchObject({ status: 400 });
+    expect(store.audit.map((a) => a.action)).toEqual(['TicketCreated']);
   });
 
   it('unknown id', async () => {
