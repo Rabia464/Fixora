@@ -12,7 +12,7 @@ export interface NotificationItem {
 
 export const notificationsApi = {
   getUnread: async (limit: number = 50): Promise<NotificationItem[]> => {
-    return apiClient<NotificationItem[]>(`/notifications/?limit=${limit}`);
+    return apiClient<NotificationItem[]>(`/notifications?limit=${limit}`);
   },
 
   markAllAsRead: async (): Promise<{ message: string }> => {

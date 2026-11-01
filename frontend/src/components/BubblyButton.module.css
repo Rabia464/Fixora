@@ -84,7 +84,7 @@
 }
 
 .button.ghost {
-  background: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   color: var(--color-text-main);
@@ -93,7 +93,7 @@
 }
 
 .button.ghost:hover {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.25);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
 }

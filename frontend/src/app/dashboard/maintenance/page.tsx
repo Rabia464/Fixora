@@ -7,9 +7,18 @@ import { TicketDrawer } from '../../../components/TicketDrawer';
 import { ToastContainer } from '../../../components/Toast';
 import { SkeletonCard } from '../../../components/SkeletonCard';
 import { Wrench, CheckCircle2, MapPin, AlertCircle, Zap, ShieldCheck, Search, Filter, PlayCircle, Clock } from 'lucide-react';
+import { LoadError } from '../../../components/LoadError';
 import { Complaint, complaintsApi } from '../../../lib/api/complaints';
 import { useToast } from '../../../hooks/useToast';
 import { useAsyncData } from '../../../hooks/useAsyncData';
+import {
+  byUrgency,
+  clickableCardProps,
+  effectiveCategory,
+  effectivePriority,
+  priorityTone,
+  timeAgo,
+} from '../../../lib/ui/ticket';
 import styles from './maintenance.module.css';
 
 const EMPTY_TASKS: Complaint[] = [];
@@ -24,7 +33,7 @@ export default function MaintenanceDashboard() {
   const { toasts, addToast, dismissToast } = useToast();
 
   const fetchTasks = useCallback(() => complaintsApi.getMaintenanceComplaints(), []);
-  const { data: tasks, loading, reload } = useAsyncData(fetchTasks, EMPTY_TASKS);
+  const { data: tasks, loading, error, reload } = useAsyncData(fetchTasks, EMPTY_TASKS);
 
   const handleStartWork = async (task: Complaint, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -69,14 +78,20 @@ export default function MaintenanceDashboard() {
   const activeTasks = tasks.filter(t => t.status === 'Forwarded' || t.status === 'InProgress');
   const priorities = ['All', 'Critical', 'High', 'Medium', 'Low'];
 
-  const filteredTasks = activeTasks.filter(task => {
-    const priority = task.overridden_priority || task.ai_priority || 'Medium';
-    const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          task.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          task.hostel.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesPriority = selectedPriority === 'All' || priority === selectedPriority;
-    return matchesSearch && matchesPriority;
-  });
+  const query = searchQuery.trim().toLowerCase();
+  const filteredTasks = activeTasks
+    .filter(task => {
+      const matchesSearch = !query ||
+        task.title.toLowerCase().includes(query) ||
+        task.location.toLowerCase().includes(query) ||
+        task.hostel.toLowerCase().includes(query);
+      const matchesPriority = selectedPriority === 'All' || effectivePriority(task) === selectedPriority;
+      return matchesSearch && matchesPriority;
+    })
+    // Most urgent first, oldest first within a priority, so nothing waits forever.
+    .sort(byUrgency);
+  const isFiltering = !!query || selectedPriority !== 'All';
+  const criticalCount = activeTasks.filter(t => effectivePriority(t) === 'Critical').length;
 
   return (
     <div className={`animate-pop-in ${styles.dashboard}`}>
@@ -87,9 +102,14 @@ export default function MaintenanceDashboard() {
           <Wrench size={28} color="var(--color-indigo)" />
           <span>Maintenance Task Queue</span>
         </div>
-        <Badge status="purple">
-          {activeTasks.length} Active Work Orders
-        </Badge>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {criticalCount > 0 && (
+            <Badge status="danger">{criticalCount} Critical</Badge>
+          )}
+          <Badge status="purple">
+            {activeTasks.length} Active Work Orders
+          </Badge>
+        </div>
       </div>
 
       {/* Controls Bar */}
@@ -99,21 +119,23 @@ export default function MaintenanceDashboard() {
           <input 
             type="text" 
             className={styles.searchInput} 
+            aria-label="Search tasks"
             placeholder="Search tasks by title, room, or hostel..." 
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
           />
         </div>
 
-        <div className={styles.filterChips}>
+        <div className={styles.filterChips} role="group" aria-label="Filter by priority">
           <Filter size={14} color="var(--color-text-muted)" style={{ marginRight: '4px' }} />
           {priorities.map(prio => (
             <button 
               key={prio} 
               className={`${styles.chip} ${selectedPriority === prio ? styles.active : ''}`}
+              aria-pressed={selectedPriority === prio}
               onClick={() => setSelectedPriority(prio)}
             >
-              {prio} Priority
+              {prio === 'All' ? 'All priorities' : prio}
             </button>
           ))}
         </div>
@@ -125,38 +147,50 @@ export default function MaintenanceDashboard() {
             <SkeletonCard />
             <SkeletonCard />
           </>
+        ) : error ? (
+          <LoadError message={error} onRetry={reload} />
         ) : filteredTasks.length === 0 ? (
-          <GlassCard accent="mint" style={{ textAlign: 'center', padding: '48px' }}>
-            <ShieldCheck size={48} color="var(--color-mint)" style={{ margin: '0 auto 12px' }} />
-            <h2 style={{ fontSize: '24px', fontWeight: 800 }}>Queue Clear!</h2>
-            <p style={{ color: 'var(--color-text-muted)', fontWeight: 500, marginTop: '6px' }}>
-              All assigned maintenance tasks have been resolved.
-            </p>
-          </GlassCard>
+          isFiltering ? (
+            <GlassCard style={{ textAlign: 'center', padding: '48px' }}>
+              <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text-muted)' }}>
+                No tasks match these filters.
+              </p>
+            </GlassCard>
+          ) : (
+            <GlassCard accent="mint" style={{ textAlign: 'center', padding: '48px' }}>
+              <ShieldCheck size={48} color="var(--color-mint)" style={{ margin: '0 auto 12px' }} />
+              <h2 style={{ fontSize: '24px', fontWeight: 800 }}>Queue Clear!</h2>
+              <p style={{ color: 'var(--color-text-muted)', fontWeight: 500, marginTop: '6px' }}>
+                All assigned maintenance tasks have been resolved.
+              </p>
+            </GlassCard>
+          )
         ) : filteredTasks.map(task => {
           const isResolving = resolvingTicketId === task.id;
-          const priority = task.overridden_priority || task.ai_priority || 'Medium';
-          const category = task.overridden_category || task.ai_category || 'General';
+          const priority = effectivePriority(task);
+          const category = effectiveCategory(task);
           const isForwarded = task.status === 'Forwarded';
+          const openTask = () => setSelectedTicket(task);
 
           return (
             <GlassCard 
               key={task.id} 
               accent={priority === 'Critical' ? 'coral' : isForwarded ? 'yellow' : 'purple'} 
               className={styles.taskCard}
-              onClick={() => setSelectedTicket(task)}
+              onClick={openTask}
+              {...clickableCardProps(openTask, `Open task: ${task.title}`)}
             >
               <div className={styles.taskInfo}>
                 <div className={styles.taskHeader}>
                   <div className={styles.taskTitle}>{task.title}</div>
-                  <Badge status={priority === 'Critical' ? 'danger' : 'warning'}>
+                  <Badge status={priorityTone(priority)}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <AlertCircle size={12} /> {priority} Priority
                     </span>
                   </Badge>
                   <Badge status={isForwarded ? 'warning' : 'info'}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Clock size={12} /> {isForwarded ? 'Forwarded (Unassigned)' : 'In Progress'}
+                      <Clock size={12} /> {isForwarded ? 'Not started' : 'In progress'}
                     </span>
                   </Badge>
                   {category && (
@@ -171,20 +205,24 @@ export default function MaintenanceDashboard() {
                 <div className={styles.taskLocation}>
                   <MapPin size={15} color="var(--color-text-muted)" />
                   {task.location} • {task.hostel}
+                  <span title={new Date(task.created_at).toLocaleString()} style={{ marginLeft: '8px' }}>
+                    • reported {timeAgo(task.created_at)}
+                  </span>
                 </div>
 
                 <div className={styles.taskDesc}>{task.description}</div>
 
                 {isResolving && (
                   <div onClick={e => e.stopPropagation()} style={{ marginTop: '12px', padding: '12px', background: 'rgba(255,255,255,0.1)', borderRadius: '10px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>
+                    <label htmlFor={`resolution-${task.id}`} style={{ fontSize: '12px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>
                       Resolution Notes (Required):
                     </label>
                     <textarea 
+                      id={`resolution-${task.id}`}
                       placeholder="e.g. Replaced faulty washer and cleared drain blockage"
                       value={resolutionNote}
                       onChange={e => setResolutionNote(e.target.value)}
-                      style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', fontSize: '13px', border: '1px solid rgba(0,0,0,0.2)' }}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', fontSize: '13px', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--color-text-main)', fontFamily: 'inherit' }}
                       autoFocus
                     />
                     <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>

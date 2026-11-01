@@ -97,7 +97,8 @@
 }
 
 .themeToggleBtn {
-  display: flex;
+  /* Hidden in the compact mobile bar, where it doesn't fit; shown from 768px up. */
+  display: none;
   align-items: center;
   gap: 10px;
   width: 100%;
@@ -188,5 +189,9 @@
 
   .userWidget {
     display: block;
+  }
+
+  .themeToggleBtn {
+    display: flex;
   }
 }

@@ -1,11 +1,13 @@
 "use client"
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { BubblyButton } from './BubblyButton';
 import { ProgressBar } from './ProgressBar';
 import { MascotWidget } from './MascotWidget';
-import { Wrench, Search, MapPin, Sparkles, CheckCircle2, ArrowRight, Camera, Trash2, AlertCircle } from 'lucide-react';
+import { Wrench, Search, MapPin, Sparkles, CheckCircle2, ArrowRight, AlertCircle } from 'lucide-react';
 import styles from './TicketModal.module.css';
 import { complaintsApi } from '../lib/api/complaints';
+import { useEscapeKey } from '../hooks/useEscapeKey';
 
 interface TicketModalProps {
   isOpen: boolean;
@@ -18,23 +20,27 @@ export const TicketModal: React.FC<TicketModalProps> = ({ isOpen, onClose, onSuc
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  useEscapeKey(isOpen, onClose);
+
   if (!isOpen) return null;
 
-  const handleNext = () => setStep(s => s + 1);
+  const canAdvance =
+    (step === 1 && title.trim().length >= 5) || (step === 2 && location.trim().length >= 3);
+  const canSubmit = description.trim().length >= 10 && !isSubmitting;
+
+  const handleNext = () => {
+    if (canAdvance) setStep(s => s + 1);
+  };
   const handleBack = () => setStep(s => s - 1);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  // Pressing Enter in a single-line field moves to the next step.
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleNext();
     }
   };
 
@@ -53,7 +59,6 @@ export const TicketModal: React.FC<TicketModalProps> = ({ isOpen, onClose, onSuc
       setTitle('');
       setLocation('');
       setDescription('');
-      setImagePreview(null);
       setStep(1);
       onClose();
     } catch (err) {
@@ -75,25 +80,31 @@ export const TicketModal: React.FC<TicketModalProps> = ({ isOpen, onClose, onSuc
     return <Sparkles size={18} color="var(--color-cyan)" />;
   };
 
-  return (
+  // Portal to <body> so the fixed overlay covers the whole viewport.
+  return createPortal(
     <div className={styles.overlay}>
-      <div className={`animate-pop-in ${styles.modal}`}>
+      <div
+        className={`animate-pop-in ${styles.modal}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ticket-modal-title"
+      >
         <div className={styles.header}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Wrench size={20} color="var(--color-cyan)" />
-            <h2 className={styles.title}>Report an Issue</h2>
+            <h2 className={styles.title} id="ticket-modal-title">Report an Issue</h2>
           </div>
-          <button className={styles.closeBtn} onClick={onClose}>×</button>
+          <button className={styles.closeBtn} onClick={onClose} aria-label="Close">×</button>
         </div>
 
-        <div className={styles.stepIndicator}>
+        <div className={styles.stepIndicator} aria-label={`Step ${step} of 3`}>
           <ProgressBar progress={(step / 3) * 100} color="cyan" />
         </div>
 
         <MascotWidget message={getMascotMessage()} icon={getStepIcon()} />
 
         {errorMessage && (
-          <div style={{ margin: '12px 24px 0', padding: '10px 14px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#fca5a5', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div role="alert" style={{ margin: '12px 24px 0', padding: '10px 14px', background: 'var(--color-coral-bg)', border: '1px solid var(--color-coral)', borderRadius: '8px', color: 'var(--color-coral)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <AlertCircle size={16} />
             <span>{errorMessage}</span>
           </div>
@@ -102,9 +113,11 @@ export const TicketModal: React.FC<TicketModalProps> = ({ isOpen, onClose, onSuc
         <div className={styles.stepContent}>
           {step === 1 && (
             <div className="animate-pop-in">
-              <label className={styles.label}>Issue Title (min 5 characters)</label>
+              <label className={styles.label} htmlFor="ticket-title">Issue Title (min 5 characters)</label>
               <input 
+                id="ticket-title"
                 className={styles.input} 
+                onKeyDown={handleInputKeyDown}
                 placeholder="e.g. Leaking Washroom Sink" 
                 value={title} 
                 onChange={e => setTitle(e.target.value)} 
@@ -115,9 +128,11 @@ export const TicketModal: React.FC<TicketModalProps> = ({ isOpen, onClose, onSuc
           
           {step === 2 && (
             <div className="animate-pop-in">
-              <label className={styles.label}>Location (min 3 characters)</label>
+              <label className={styles.label} htmlFor="ticket-location">Location (min 3 characters)</label>
               <input 
+                id="ticket-location"
                 className={styles.input} 
+                onKeyDown={handleInputKeyDown}
                 placeholder="e.g. Room 304, 3rd Floor" 
                 value={location} 
                 onChange={e => setLocation(e.target.value)} 
@@ -128,37 +143,15 @@ export const TicketModal: React.FC<TicketModalProps> = ({ isOpen, onClose, onSuc
 
           {step === 3 && (
             <div className="animate-pop-in">
-              <label className={styles.label}>Description (min 10 characters)</label>
+              <label className={styles.label} htmlFor="ticket-description">Description (min 10 characters)</label>
               <textarea 
+                id="ticket-description"
                 className={styles.textarea} 
                 placeholder="Describe the issue in detail..." 
                 value={description} 
                 onChange={e => setDescription(e.target.value)} 
                 autoFocus 
               />
-
-              <label className={styles.label} style={{ marginTop: '14px' }}>Attach Photo (Optional)</label>
-              
-              {!imagePreview ? (
-                <label className={styles.uploadBox}>
-                  <Camera size={24} color="var(--color-text-muted)" />
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-muted)' }}>
-                    Click to upload photo of broken item
-                  </span>
-                  <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
-                </label>
-              ) : (
-                <div style={{ position: 'relative' }}>
-                  <img src={imagePreview} alt="Preview" className={styles.imagePreview} />
-                  <button 
-                    type="button" 
-                    onClick={() => setImagePreview(null)}
-                    style={{ position: 'absolute', top: '16px', right: '8px', background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', padding: '6px', color: 'white', cursor: 'pointer' }}
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -169,16 +162,17 @@ export const TicketModal: React.FC<TicketModalProps> = ({ isOpen, onClose, onSuc
           ) : <div />}
           
           {step < 3 ? (
-            <BubblyButton variant="primary" onClick={handleNext} disabled={(step === 1 && title.trim().length < 5) || (step === 2 && location.trim().length < 3)}>
+            <BubblyButton variant="primary" onClick={handleNext} disabled={!canAdvance}>
               Next <ArrowRight size={16} />
             </BubblyButton>
           ) : (
-            <BubblyButton variant="secondary" onClick={handleSubmit} disabled={description.trim().length < 10 || isSubmitting}>
+            <BubblyButton variant="secondary" onClick={handleSubmit} disabled={!canSubmit}>
               {isSubmitting ? 'Submitting...' : 'Submit Ticket'} <CheckCircle2 size={16} />
             </BubblyButton>
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
