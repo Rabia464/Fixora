@@ -35,3 +35,56 @@ describe('classifyComplaint', () => {
     expect(pri('Fan makes noise')).toBe('Medium');
   });
 });
+
+
+const predict = (title: string, description = '') => classifyComplaint(title, description);
+
+describe('AI triage classifier', () => {
+  it.each([
+    ['Leaking pipe under sink', 'Plumbing', 'Plumbing'],
+    ['Toilet will not flush', 'Plumbing', 'Plumbing'],
+    ['Socket not working', 'Electrical', 'Electrical'],
+    ['Ceiling fan is making noise', 'Electrical', 'Electrical'],
+    ['Door lock jammed', 'Furniture', 'Maintenance'],
+    ['Broken chair', 'Furniture', 'Maintenance'],
+    ['Garbage not collected', 'Sanitation', 'Sanitation'],
+    ['Rodent spotted in corridor', 'Sanitation', 'Sanitation'],
+    ['Something odd in my room', 'General', 'Maintenance'],
+  ])('%s → %s / %s', (title, category, department) => {
+    expect(predict(title)).toMatchObject({ category, department });
+  });
+
+  it('reads the description as well as the title', () => {
+    expect(predict('Help', 'the tap in room 4 is dripping')).toMatchObject({ category: 'Plumbing' });
+  });
+
+  it('is case-insensitive', () => {
+    expect(predict('POWER OUTAGE')).toMatchObject({ category: 'Electrical' });
+  });
+
+  it('plumbing wins when several categories match', () => {
+    // Order of the rules matters: "water" (plumbing) beats "light" (electrical).
+    expect(predict('Water dripping on the light')).toMatchObject({ category: 'Plumbing' });
+  });
+
+  it.each([
+    ['Sparks from the socket', 'Critical'],
+    ['Smell of gas in kitchen', 'Critical'],
+    ['Short circuit in room', 'Critical'],
+    ['No water since morning', 'High'],
+    ['Broken window', 'High'],
+    ['Minor scratch on desk', 'Low'],
+    ['Fan runs slow', 'Low'],
+    ['Desk needs repainting', 'Medium'],
+  ])('%s → priority %s', (title, priority) => {
+    expect(predict(title).priority).toBe(priority);
+  });
+
+  it('critical keywords outrank high and low ones', () => {
+    expect(predict('Minor leak turned into a flood').priority).toBe('Critical');
+  });
+
+  it('handles empty input', () => {
+    expect(predict('', '')).toEqual({ category: 'General', priority: 'Medium', department: 'Maintenance' });
+  });
+});
