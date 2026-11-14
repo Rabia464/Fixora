@@ -1,35 +1,7 @@
 import { apiClient } from './client';
 
-export type ComplaintStatus =
-  | 'Open'
-  | 'UnderReview'
-  | 'Forwarded'
-  | 'InProgress'
-  | 'Resolved'
-  | 'Closed'
-  | 'Reopened';
-
-export type ComplaintPriority = 'Low' | 'Medium' | 'High' | 'Critical';
-
-export interface Complaint {
-  id: string;
-  title: string;
-  description: string;
-  location: string;
-  hostel: string;
-  status: ComplaintStatus;
-  ai_category: string | null;
-  ai_priority: ComplaintPriority | null;
-  ai_department: string | null;
-  supervisor_override: boolean;
-  overridden_category: string | null;
-  overridden_priority: ComplaintPriority | null;
-  overridden_department: string | null;
-  created_by: string;
-  supervisor_id: string | null;
-  created_at: string;
-  updated_at: string;
-}
+export type { Complaint, ComplaintPriority, ComplaintStatus } from '../domain/complaint';
+import type { Complaint, ComplaintPriority, ComplaintStatus } from '../domain/complaint';
 
 export interface CreateComplaintInput {
   title: string;

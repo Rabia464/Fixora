@@ -4,6 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
 import { Home, LayoutDashboard, Eye, Wrench, LogOut, GraduationCap, ShieldCheck, Sun, Moon, Info } from 'lucide-react';
 import { useAuthStore } from '../stores/auth-store';
+import { NotificationBell } from './NotificationBell';
 import styles from './Sidebar.module.css';
 
 const getActiveTheme = (path: string): string => {
@@ -28,6 +29,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, path, action, curr
   return (
     <button
       className={`${styles.navLink} ${isActive ? styles.active : ''} ${activeTheme}`}
+      aria-current={isActive ? 'page' : undefined}
       onClick={() => (action ? action() : path && onNavigate(path))}
     >
       <Icon className={styles.icon} size={20} />
@@ -77,7 +79,8 @@ export const Sidebar: React.FC = () => {
         <span className={styles.logoText}>Fixora</span>
       </div>
       
-      <NavItem icon={Home} label="Home" path="/" {...navProps} />
+      {/* "/" just redirects a signed-in user to their dashboard, so only show it when signed out. */}
+      {!role && <NavItem icon={Home} label="Home" path="/" {...navProps} />}
       
       {role === 'Student' && (
         <NavItem icon={LayoutDashboard} label="My Dashboard" path="/dashboard/student" {...navProps} />
@@ -90,6 +93,8 @@ export const Sidebar: React.FC = () => {
       {role === 'Maintenance Office' && (
         <NavItem icon={Wrench} label="Task List" path="/dashboard/maintenance" {...navProps} />
       )}
+
+      {role && <NotificationBell className={styles.navLink} />}
 
       {role ? (
         <NavItem icon={LogOut} label="Logout" action={handleLogout} {...navProps} />

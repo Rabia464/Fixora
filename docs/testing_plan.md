@@ -1,21 +1,28 @@
 # Testing Plan
 
-## 1. Unit Testing
-- **Backend (Pytest):** 
-  - Test individual `AIEngine.predict` logic with various descriptions.
-  - Test `AuthService` token generation.
-- **Frontend (Jest/React Testing Library):**
-  - Test UI component rendering (Buttons, Cards, Badges).
-  - Test custom hooks (e.g., JWT decoding, API fetch wrappers).
+What is tested today and what is still missing. Commands are in the
+[root README](../README.md#running-tests) and [CONTRIBUTING.md](../CONTRIBUTING.md).
 
-## 2. Integration Testing
-- **Backend (FastAPI TestClient):**
-  - Test the full ticket creation flow, verifying database inserts and AI overrides.
-  - Test RBAC boundaries (ensure Student cannot hit `/api/v1/supervisor/*`).
+## Tooling
 
-## 3. End-to-End Testing (Cypress / Playwright)
-- Simulate full user journeys:
-  1. Student logs in -> Submits ticket -> Sees "Open" status.
-  2. Supervisor logs in -> Overrides AI priority -> Forwards ticket.
-  3. Maintenance logs in -> Marks ticket "In Progress" -> Resolves ticket.
-  4. Student logs in -> Confirms resolution -> Ticket "Closed".
+- **Frontend + API:** Vitest (`frontend/vitest.config.ts`), V8 coverage with enforced thresholds.
+- **Reference backend:** pytest, ruff and mypy.
+- **CI:** `.github/workflows/ci.yml` runs both on every PR, plus a production `next build`.
+
+## Covered
+
+| Layer | Suite | What it checks |
+| :--- | :--- | :--- |
+| API routes | `src/app/api/v1/__tests__/routes.test.ts` | Every handler: 401 without a token, status codes (200/201/400/403/404/409/500), `{ detail }` error shape, full lifecycle over HTTP, visibility, notifications |
+| Workflow | `src/lib/server/__tests__/workflow.test.ts` | Transition table and role table |
+| Service | `src/lib/server/__tests__/complaints.test.ts` | Lifecycle, state, role and hostel/ownership guards, validation, audit and notification side effects |
+| Auth | `src/lib/server/__tests__/auth.test.ts` | Token signing, expiry, tampering, role re-validation |
+| AI triage | `src/lib/ai/__tests__/classifier.test.ts` | Category, department and priority rules and their precedence |
+| API client | `src/lib/api/__tests__/client.test.ts` | URL building, bearer header, error mapping, 401 logout and redirect |
+| Reference backend | `backend/tests/` | Auth, complaints, RBAC and transitions, lifecycle integration |
+
+## Not yet covered
+
+1. **Firestore queries (`src/lib/server/db.ts`).** These need the Firestore emulator (`firebase emulators:exec`) in CI.
+2. **UI components and hooks.** These would need jsdom and React Testing Library.
+3. **End-to-end journeys.** These would use Playwright against `next dev` with the emulator: a student submits a complaint, the supervisor overrides and forwards it, maintenance resolves it, and the student confirms.

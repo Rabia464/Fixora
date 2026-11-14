@@ -11,5 +11,8 @@ export const GET = route<Ctx>(async (request, { params }) => {
   const { id } = await params;
   // Same visibility rules as reading the complaint itself.
   await getVisibleComplaint(id, user);
-  return NextResponse.json(await getAuditLogs(id));
+  // actor_email stays in Firestore for admins but isn't sent to clients: the UI
+  // shows names only, and students shouldn't be able to harvest staff emails.
+  const logs = await getAuditLogs(id);
+  return NextResponse.json(logs.map((log) => ({ ...log, actor_email: undefined })));
 });

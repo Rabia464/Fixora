@@ -8,6 +8,7 @@ import {
   newComplaintId,
   notifyRole,
   saveComplaint,
+  updateComplaint,
   UserDoc,
 } from './db';
 import { badRequest, forbidden, HttpError, notFound } from './http';
@@ -15,24 +16,47 @@ import {
   assertRole,
   assertTransition,
   AuditAction,
-  ComplaintPriority,
   ComplaintStatus,
+  isCategory,
+  isDepartment,
   isPriority,
   MAINTENANCE_VISIBLE_STATUSES,
   NotificationType,
   WorkflowAction,
 } from './workflow';
-import { aiService } from '../ai/classifier';
+import { classifyComplaint } from '../ai/classifier';
+import { effectiveDepartment } from '../domain/complaint';
 
 /**
  * Complaint lifecycle service — the Firestore counterpart of
  * backend/app/services/complaint.py. Every mutation:
  *   1. checks the caller's role and ownership/hostel scope,
  *   2. checks the state transition is legal (409 otherwise),
- *   3. writes the complaint, an audit entry, and any notifications.
+ *   3. writes the complaint (in a transaction, so concurrent requests can't
+ *      both pass the same check), then an audit entry and any notifications.
  */
 
 const now = () => new Date().toISOString();
+
+/** Upper bounds on free-text fields, so one request can't store megabytes. */
+export const LIMITS = {
+  title: 150,
+  description: 5000,
+  location: 200,
+  note: 2000,
+} as const;
+
+/**
+ * Trims a free-text field and enforces its length. Returns null when the value
+ * is missing or blank; callers decide whether that is an error.
+ */
+function text(value: unknown, field: string, max: number): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (trimmed.length > max) throw badRequest(`${field} must be at most ${max} characters.`);
+  return trimmed;
+}
 
 function requireHostel(user: UserDoc, label: string): string {
   if (!user.hostel) throw new HttpError(422, `${label} has no hostel assigned.`);
@@ -73,12 +97,25 @@ function audit(
   });
 }
 
-/** Shared preamble for every lifecycle mutation: role → load → transition. */
-async function begin(action: WorkflowAction, id: string, user: UserDoc) {
+/**
+ * Shared shape of every lifecycle mutation: role check, then — atomically —
+ * load, transition check, caller-specific checks, and write. `apply` receives
+ * the current complaint and the target status and returns the updated
+ * complaint; it may throw to abort, and must not have side effects.
+ */
+async function transition(
+  action: WorkflowAction,
+  id: string,
+  user: UserDoc,
+  apply: (complaint: ComplaintDoc, nextStatus: ComplaintStatus) => ComplaintDoc
+) {
   assertRole(action, user.role.name);
-  const complaint = await loadComplaint(id);
-  const nextStatus = assertTransition(action, complaint.status);
-  return { complaint, nextStatus, previous: complaint.status };
+  const result = await updateComplaint(id, (complaint) => {
+    const nextStatus = assertTransition(action, complaint.status);
+    return { ...apply(complaint, nextStatus), status: nextStatus, updated_at: now() };
+  });
+  if (!result) throw notFound();
+  return { updated: result.after, previous: result.before.status, nextStatus: result.after.status };
 }
 
 // ----------------------------------------------------------------- reads
@@ -120,8 +157,7 @@ export async function listMaintenanceQueue(user: UserDoc): Promise<ComplaintDoc[
   if (user.role.name !== 'Maintenance Office') {
     throw forbidden('Only maintenance office can access this endpoint.');
   }
-  const all = await getComplaints();
-  return all.filter((c) => MAINTENANCE_VISIBLE_STATUSES.includes(c.status));
+  return getComplaints({ statusIn: MAINTENANCE_VISIBLE_STATUSES });
 }
 
 // ---------------------------------------------------------------- create
@@ -136,24 +172,22 @@ export async function createComplaint(input: CreateInput, user: UserDoc): Promis
   if (user.role.name !== 'Student') throw forbidden('Only students can file complaints.');
   const hostel = requireHostel(user, 'Student');
 
-  const { title, description, location } = input;
-  if (
-    typeof title !== 'string' || !title.trim() ||
-    typeof description !== 'string' || !description.trim() ||
-    typeof location !== 'string' || !location.trim()
-  ) {
+  const title = text(input.title, 'Title', LIMITS.title);
+  const description = text(input.description, 'Description', LIMITS.description);
+  const location = text(input.location, 'Location', LIMITS.location);
+  if (!title || !description || !location) {
     throw badRequest('Title, description, and location are required.');
   }
 
-  const prediction = aiService.predict(title, description);
+  const prediction = classifyComplaint(title, description);
   const supervisor = await getSupervisorByHostel(hostel);
   const ts = now();
 
   const complaint: ComplaintDoc = {
     id: newComplaintId(),
-    title: title.trim(),
-    description: description.trim(),
-    location: location.trim(),
+    title,
+    description,
+    location,
     hostel,
     status: 'Open',
     ai_category: prediction.category,
@@ -204,47 +238,48 @@ export async function supervisorReview(
   input: ReviewInput,
   user: UserDoc
 ): Promise<ComplaintDoc> {
-  const { complaint, nextStatus, previous } = await begin('review', id, user);
-  assertSupervisorScope(complaint, user);
-
-  const { category, department } = input;
-  if (typeof category !== 'string' || !category || typeof department !== 'string' || !department) {
-    throw badRequest('category and department are required.');
-  }
-  if (!isPriority(input.priority)) throw badRequest('priority must be Low, Medium, High or Critical.');
-  const priority: ComplaintPriority = input.priority;
+  const { category, department, priority } = input;
   const override = input.override === true;
 
-  const updated: ComplaintDoc = {
-    ...complaint,
-    status: nextStatus,
-    supervisor_override: override,
-    overridden_category: category,
-    overridden_priority: priority,
-    overridden_department: department,
-    supervisor_id: user.id,
-    updated_at: now(),
-  };
-  await saveComplaint(updated);
+  const { updated, nextStatus, previous } = await transition('review', id, user, (complaint) => {
+    assertSupervisorScope(complaint, user);
+    if (!isCategory(category)) throw badRequest('category is not a recognised complaint category.');
+    if (!isDepartment(department)) throw badRequest('department is not a recognised department.');
+    if (!isPriority(priority)) throw badRequest('priority must be Low, Medium, High or Critical.');
+    return {
+      ...complaint,
+      supervisor_override: override,
+      overridden_category: category,
+      overridden_priority: priority,
+      overridden_department: department,
+      supervisor_id: user.id,
+    };
+  });
   await audit(
     override ? AuditAction.SUPERVISOR_OVERRIDE : AuditAction.SUPERVISOR_REVIEWED,
     user,
     updated,
-    { category, priority, department, override, previous_status: previous, new_status: nextStatus }
+    {
+      category: updated.overridden_category,
+      priority: updated.overridden_priority,
+      department: updated.overridden_department,
+      override,
+      previous_status: previous,
+      new_status: nextStatus,
+    }
   );
   return updated;
 }
 
 export async function forwardToMaintenance(id: string, user: UserDoc): Promise<ComplaintDoc> {
-  const { complaint, nextStatus, previous } = await begin('forward', id, user);
-  assertSupervisorScope(complaint, user);
-
-  const updated: ComplaintDoc = { ...complaint, status: nextStatus, supervisor_id: user.id, updated_at: now() };
-  await saveComplaint(updated);
+  const { updated, nextStatus, previous } = await transition('forward', id, user, (complaint) => {
+    assertSupervisorScope(complaint, user);
+    return { ...complaint, supervisor_id: user.id };
+  });
   await audit(AuditAction.FORWARDED_TO_MAINTENANCE, user, updated, {
     previous_status: previous,
     new_status: nextStatus,
-    destination_department: updated.overridden_department ?? updated.ai_department ?? 'Maintenance',
+    destination_department: effectiveDepartment(updated),
   });
   await notifyRole('Maintenance Office', {
     complaint_id: updated.id,
@@ -261,11 +296,8 @@ export async function updateProgress(
   note: unknown,
   user: UserDoc
 ): Promise<ComplaintDoc> {
-  const { complaint, nextStatus, previous } = await begin('progress', id, user);
-  const progressNote = typeof note === 'string' && note.trim() ? note.trim() : null;
-
-  const updated: ComplaintDoc = { ...complaint, status: nextStatus, updated_at: now() };
-  await saveComplaint(updated);
+  const progressNote = text(note, 'Note', LIMITS.note);
+  const { updated, nextStatus, previous } = await transition('progress', id, user, (c) => c);
   await audit(AuditAction.STATUS_UPDATED, user, updated, {
     previous_status: previous,
     new_status: nextStatus,
@@ -285,19 +317,11 @@ export async function resolveComplaint(
   resolutionNote: unknown,
   user: UserDoc
 ): Promise<ComplaintDoc> {
-  const { complaint, nextStatus, previous } = await begin('resolve', id, user);
-  if (typeof resolutionNote !== 'string' || !resolutionNote.trim()) {
-    throw badRequest('Resolution note is required.');
-  }
-  const resolution_note = resolutionNote.trim();
-
-  const updated: ComplaintDoc = {
-    ...complaint,
-    status: nextStatus,
-    resolution_notes: resolution_note,
-    updated_at: now(),
-  };
-  await saveComplaint(updated);
+  const resolution_note = text(resolutionNote, 'Resolution note', LIMITS.note);
+  const { updated, nextStatus, previous } = await transition('resolve', id, user, (complaint) => {
+    if (!resolution_note) throw badRequest('Resolution note is required.');
+    return { ...complaint, resolution_notes: resolution_note };
+  });
   await audit(AuditAction.STATUS_UPDATED, user, updated, {
     previous_status: previous,
     new_status: nextStatus,
@@ -315,11 +339,10 @@ export async function resolveComplaint(
 // --------------------------------------------------------------- student
 
 export async function confirmResolution(id: string, user: UserDoc): Promise<ComplaintDoc> {
-  const { complaint, nextStatus, previous } = await begin('confirm', id, user);
-  assertOwner(complaint, user);
-
-  const updated: ComplaintDoc = { ...complaint, status: nextStatus, updated_at: now() };
-  await saveComplaint(updated);
+  const { updated, nextStatus, previous } = await transition('confirm', id, user, (complaint) => {
+    assertOwner(complaint, user);
+    return complaint;
+  });
   await audit(AuditAction.STUDENT_CONFIRMED, user, updated, {
     previous_status: previous,
     new_status: nextStatus,
@@ -340,18 +363,12 @@ export async function reopenComplaint(
   reason: unknown,
   user: UserDoc
 ): Promise<ComplaintDoc> {
-  const { complaint, nextStatus, previous } = await begin('reopen', id, user);
-  assertOwner(complaint, user);
-  if (typeof reason !== 'string' || !reason.trim()) throw badRequest('Reopen reason is required.');
-  const reopen_reason = reason.trim();
-
-  const updated: ComplaintDoc = {
-    ...complaint,
-    status: nextStatus,
-    reopen_reason,
-    updated_at: now(),
-  };
-  await saveComplaint(updated);
+  const reopen_reason = text(reason, 'Reopen reason', LIMITS.note);
+  const { updated, nextStatus, previous } = await transition('reopen', id, user, (complaint) => {
+    assertOwner(complaint, user);
+    if (!reopen_reason) throw badRequest('Reopen reason is required.');
+    return { ...complaint, reopen_reason };
+  });
   await audit(AuditAction.STUDENT_REOPENED, user, updated, {
     previous_status: previous,
     new_status: nextStatus,

@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fixora frontend + API
 
-## Getting Started
+The deployed Fixora app: Next.js 16 (App Router) pages **and** the `/api/v1`
+route handlers, backed by Cloud Firestore. See the [root README](../README.md)
+for the product overview, demo accounts and deployment.
 
-First, run the development server:
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+nvm use                  # Node 22, from the repo's .nvmrc
+npm ci
+cp .env.example .env.local   # set JWT_SECRET; add Firebase credentials (see the file)
+npm run seed -- --reset      # demo users + sample complaints (needs Firebase credentials)
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The tests don't need Firebase credentials, so you can run `npm run check` right
+after `npm ci`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Script | Purpose |
+| :--- | :--- |
+| `npm run dev` | Dev server |
+| `npm run build` / `npm start` | Production build and server |
+| `npm run check` | Lint + typecheck + tests (what CI runs, minus the build) |
+| `npm test` / `npm run test:watch` | Vitest |
+| `npm run test:coverage` | Vitest with a coverage report and thresholds |
+| `npm run lint` / `npm run typecheck` | ESLint / `tsc --noEmit` |
+| `npm run seed` | Seed Firestore (`--reset` wipes sample data first) |
 
-## Learn More
+## Layout
 
-To learn more about Next.js, take a look at the following resources:
+- `src/app/` holds pages, and `src/app/api/v1/` holds the API route handlers (thin wrappers).
+- `src/lib/server/` holds the business rules: `workflow.ts` (state machine), `complaints.ts` (service), `auth.ts` (tokens), `http.ts` (error mapping), `db.ts` (Firestore).
+- `src/lib/ai/classifier.ts` is the rule-based triage classifier.
+- `src/lib/api/` is the typed client the UI uses to call the API.
+- `src/proxy.ts` redirects dashboard routes by role (Next 16's replacement for `middleware.ts`).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Tests live next to the code in `__tests__/` folders and are named `*.test.ts`.

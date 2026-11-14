@@ -140,22 +140,41 @@ Authentication is email-only (no passwords) — this is a demo system. Log in wi
 
 ## Running Tests
 
-API / workflow tests (state machine, role & scope guards, token signing):
+Everything CI checks, in one command:
 
 ```bash
 cd frontend
-npm test
+npm run check            # eslint + tsc + vitest
 ```
+
+Individual pieces:
+
+| Command | What it runs |
+| :--- | :--- |
+| `npm test` | All Vitest suites (no Firestore or network needed) |
+| `npm run test:watch` | Vitest in watch mode |
+| `npm run test:coverage` | Tests plus a coverage report in `frontend/coverage/` (fails under the thresholds in `vitest.config.ts`) |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run lint` | ESLint |
+
+What the suites cover:
+
+- `src/app/api/v1/__tests__/routes.test.ts` calls every API route handler with real signed tokens against an in-memory Firestore stand-in: status codes, auth on every protected route, the `{ detail }` error shape, the full complaint lifecycle and visibility rules.
+- `src/lib/server/__tests__/` covers the state machine, the complaints service guards and token signing.
+- `src/lib/ai/__tests__/` covers the triage classifier's category and priority rules.
+- `src/lib/api/__tests__/` covers the browser API client (bearer header, error mapping, 401 logout).
 
 Reference backend suite:
 
 ```bash
 cd backend
-./venv/bin/pytest tests/ -v
+ruff check app tests && ruff format --check app tests && mypy app && pytest
 ```
 
-CI runs lint, type-check, tests and a production build for the frontend, and
-ruff / mypy / pytest for the backend.
+CI (`.github/workflows/ci.yml`) runs all of the above plus a production build on
+every pull request, and posts a coverage table on the run summary. Dependabot
+opens weekly grouped update PRs for npm, pip and GitHub Actions.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow.
 
 ---
 
@@ -189,7 +208,7 @@ Fixora/
 │   │   ├── lib/api/            # Typed API client used by the UI
 │   │   ├── lib/firebase/       # firebase-admin initialisation
 │   │   ├── lib/server/         # workflow, complaints service, auth, db (+ tests)
-│   │   ├── middleware.ts       # Route protection & RBAC redirection
+│   │   ├── proxy.ts            # Route protection & RBAC redirection (Next 16 proxy, formerly middleware.ts)
 │   │   └── stores/             # Zustand auth store
 │   └── vercel.json
 └── docker-compose.yml          # Reference backend orchestration (Postgres + FastAPI + UI)

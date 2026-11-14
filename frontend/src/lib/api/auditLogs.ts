@@ -5,7 +5,6 @@ export interface AuditLogItem {
   action: string;
   performed_by: string;
   actor_name?: string | null;
-  actor_email?: string | null;
   complaint_id?: string | null;
   details: Record<string, unknown>;
   created_at: string;
