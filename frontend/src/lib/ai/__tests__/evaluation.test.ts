@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { evaluateTriage, formatTriageReport, type LabelledComplaint } from '../evaluation';
 import type { AIPrediction } from '../classifier';
 import sample from '../../../../evaluation/triage-sample.json';
+import tuning from '../../../../evaluation/triage-tuning.json';
 
 const item = (
   id: string,
@@ -80,6 +81,21 @@ describe('triage sample', () => {
       expect(['Plumbing', 'Electrical', 'Furniture', 'Sanitation', 'General']).toContain(s.category);
       expect(['Low', 'Medium', 'High', 'Critical']).toContain(s.priority);
       expect(s.title.trim()).not.toBe('');
+    }
+  });
+});
+
+describe('tuning set', () => {
+  const samples = tuning.samples as LabelledComplaint[];
+  const norm = (t: string) => t.trim().toLowerCase();
+
+  it('is valid and never shares a complaint with the held-out set', () => {
+    expect(samples.length).toBeGreaterThanOrEqual(100);
+    const heldOut = new Set((sample.samples as LabelledComplaint[]).map((s) => norm(s.title)));
+    const heldOutText = new Set((sample.samples as LabelledComplaint[]).map((s) => norm(s.description)));
+    for (const s of samples) {
+      expect(heldOut.has(norm(s.title))).toBe(false);
+      expect(heldOutText.has(norm(s.description))).toBe(false);
     }
   });
 });

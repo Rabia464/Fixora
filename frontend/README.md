@@ -28,13 +28,14 @@ after `npm ci`.
 | `npm run test:coverage` | Vitest with a coverage report and thresholds |
 | `npm run lint` / `npm run typecheck` | ESLint / `tsc --noEmit` |
 | `npm run seed` | Seed Firestore with 6 demo users and 20 sample complaints (`--reset` wipes sample data first) |
-| `npm run eval:triage` | Measure the triage rules on `evaluation/triage-sample.json`; writes `evaluation/triage-report.md` |
+| `npm run eval:triage` | Score the triage rules on the held-out set (`evaluation/triage-sample.json`); writes `evaluation/triage-report.md` |
+| `npm run eval:triage:tuning` | Same for the tuning set (`evaluation/triage-tuning.json`); use this one while changing the rules |
 
 ## Layout
 
 - `src/app/` holds pages, and `src/app/api/v1/` holds the API route handlers (thin wrappers).
 - `src/lib/server/` holds the business rules: `workflow.ts` (state machine), `complaints.ts` (service), `auth.ts` (tokens), `http.ts` (error mapping), `db.ts` (Firestore).
-- `src/lib/ai/classifier.ts` is the rule-based triage classifier.
+- `src/lib/ai/classifier.ts` is the rule-based triage classifier (weighted keywords for category, safety-first rules for priority). `src/lib/ai/evaluation.ts` scores it; see `docs/evaluation.md`.
 - `src/lib/api/` is the typed client the UI uses to call the API.
 - `src/proxy.ts` redirects dashboard routes by role (Next 16's replacement for `middleware.ts`).
 

@@ -13,7 +13,7 @@ npm run check            # lint + type check + all tests
 npm run test:coverage    # the same tests with a coverage report
 ```
 
-Vitest prints how many tests passed, for example `Tests 186 passed (186)`.
+Vitest prints how many tests passed, for example `Tests 202 passed (202)`.
 Quote that count and the CI run on `main` in the report. Objective 5 asks for at
 least 90% of the planned functional test cases to pass.
 
@@ -34,30 +34,87 @@ Which tests prove each acceptance criterion:
 ## 2. Triage accuracy (Feasibility Report objective 3)
 
 ```bash
-npm run eval:triage
+npm run eval:triage          # held-out test set  -> evaluation/triage-report.md
+npm run eval:triage:tuning   # tuning set         -> evaluation/triage-tuning-report.md
 ```
 
-This runs the keyword rules in `src/lib/ai/classifier.ts` over the 100
-labelled complaints in `evaluation/triage-sample.json` and writes
-`evaluation/triage-report.md`. The report gives category, priority and
-department agreement, a confusion matrix, precision and recall per category,
-and every Critical complaint the rules ranked lower. The target is set with
+Both commands run the keyword rules in `src/lib/ai/classifier.ts` over a set
+of labelled complaints. Each report gives category, priority and department
+agreement, confusion matrices, precision and recall per category, and every
+Critical complaint the rules ranked lower. The target is set with
 `TRIAGE_TARGET` (default 0.8).
 
-**Read before quoting the numbers.** The 100 complaints are realistic but
-synthetic: the team wrote them and labelled them as a supervisor would. They
-are not real student complaints. The Feasibility Report says not to present
-synthetic data as evidence of real-world accuracy (section 5 and
-recommendation 6). In the report, call the result "agreement on a synthetic
+### Method
+
+There are two separate sets of labelled complaints:
+
+| Set | File | Size | Use |
+| :-- | :-- | --: | :-- |
+| Tuning | `evaluation/triage-tuning.json` | 122 | Adjust the rules by looking only at this set's misses |
+| Held-out test | `evaluation/triage-sample.json` | 100 | Measure the final rules once and report the score |
+
+A test (`src/lib/ai/__tests__/evaluation.test.ts`) checks that the two sets
+share no complaint.
+
+The rules work like this:
+- **Category:** each category has strong keywords worth 2 points and weak
+  keywords worth 1 point. Title words count double, because the description
+  often only says where the problem is. The highest score wins. Building and
+  safety-equipment words (wall, ceiling, lift, extinguisher…) send a complaint
+  to General only when they outscore every specific trade.
+- **Priority:** checked from Critical down to Low, and the first level that
+  matches wins. Anything unmatched is Medium.
+
+### Labelling guide
+
+Both sets were labelled with these rules, written before the rules were tuned.
+
+| Priority | Meaning | Examples |
+| :-- | :-- | :-- |
+| Critical | Immediate danger to people | fire, smoke, gas smell, sparks, burning smell, electric shock, exposed or live wires, short circuit, burst pipe, flooding |
+| High | An essential service is out; a room or block can't be secured; someone could be hurt or made ill | no water or power, toilet blocked or overflowing, sewage, door can't lock, shattered glass, falling plaster, loose railing, rats or bed bugs, dead animal, stuck lift, missing extinguisher |
+| Medium | A fault that needs repair, with no danger | most "not working" or "broken" complaints |
+| Low | Cosmetic, or a minor inconvenience with a workaround | flickering, dim, slow, loose, wobbly, peeling paint, dust, torn mattress |
+
+Category follows the trade that fixes the problem. Plumbing covers water,
+pipes, taps, toilets and geysers. Electrical covers power, lights, fans,
+sockets, wiring and AC. Furniture covers beds, chairs, tables, cupboards,
+doors, locks and windows. Sanitation covers cleaning, garbage, pests and
+smells. General covers walls, ceilings, roofs, floors, paint, lifts, fire
+safety equipment and laundry machines. Department follows category.
+
+### Results (14 Nov 2026)
+
+| Measure | Before (first-match rules) | After, tuning set | **After, held-out set** |
+| :-- | --: | --: | --: |
+| Category agreement | 73% | 94.3% | **93%** (target 80%) |
+| Priority agreement | 46% | 86.9% | **77%** |
+| Department agreement | 79% | 95.1% | **95%** |
+| Critical complaints suggested as Critical | 4 of 9 | 12 of 12 | **9 of 9** |
+| Complaints ranked below their label | 18 | 3 | **5** |
+
+The held-out run was done once, after the rules were frozen; the rules were
+not changed afterwards. On the held-out set, none of the 5 complaints ranked
+too low is a safety case: four are Medium complaints suggested as Low, and one
+High (a broken bed frame) was suggested as Medium.
+Known misses include "bed bugs" (the word "bed" pulls it to Furniture) and
+"termites in cupboard". The supervisor reviews every suggestion and can change
+any field before forwarding, so a wrong suggestion is caught before work is
+assigned.
+
+**Read before quoting the numbers.** Both sets are realistic but synthetic.
+The team wrote them and labelled them as a supervisor would, and the same
+person wrote the rules, so the held-out score is likely higher than it would
+be on real complaints. The Feasibility Report says not to present synthetic
+data as evidence of real-world accuracy (section 5 and recommendation 6).
+In the report, call the result "93% category agreement on a held-out synthetic
 sample". For a real figure, collect anonymised complaints with the hostel
-office's permission, have a supervisor label them, add them to the JSON file,
-and run the script again.
+office's permission and have a supervisor label them. Add them as a new
+held-out file and run the script once.
 
-**Don't tune the rules on this same sample and then report the higher score.**
-The score would no longer be a held-out measure. If you improve the rules,
-work from a separate set of complaints and keep this file as the held-out test.
-
-The first run (14 Nov 2026) is saved as `evaluation/triage-report.md`.
+**Never tune the rules on the held-out set.** To improve the rules, add
+complaints to the tuning set, adjust the rules against
+`npm run eval:triage:tuning`, and only then run `npm run eval:triage`.
 
 ## 3. Usability check (Feasibility Report objective 2)
 

@@ -13,7 +13,8 @@
     "test:coverage": "vitest run --coverage",
     "check": "npm run lint && npm run typecheck && npm test",
     "seed": "node scripts/seed.mjs",
-    "eval:triage": "vitest run --config vitest.eval.config.ts"
+    "eval:triage": "vitest run --config vitest.eval.config.ts",
+    "eval:triage:tuning": "TRIAGE_SET=tuning vitest run --config vitest.eval.config.ts"
   },
   "dependencies": {
     "@google-cloud/firestore": "^9.1.0",
