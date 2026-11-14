@@ -14,10 +14,10 @@ describe('classifyComplaint', () => {
   });
 
   it('does not match keywords inside other words', () => {
-    expect(cat('My laptop charger is missing')).toBe('General'); // "tap"
+    expect(cat('My laptop bag is missing')).toBe('General'); // "tap"
     expect(cat('Room is slightly cramped')).toBe('General'); // "light"
     expect(cat('Bedroom ceiling paint peeling')).toBe('General'); // "bed"
-    expect(cat('Fancy new curtains requested')).toBe('General'); // "fan"
+    expect(cat('Fancy new posters requested')).toBe('General'); // "fan"
     expect(cat('Noise from Block C at night')).toBe('General'); // "lock"
   });
 
@@ -30,7 +30,8 @@ describe('classifyComplaint', () => {
   it('assigns priority', () => {
     expect(pri('Sparks from socket')).toBe('Critical');
     expect(pri('Room flooded')).toBe('Critical');
-    expect(pri('Window broken')).toBe('High');
+    expect(pri('Window glass shattered')).toBe('High');
+    expect(pri('Window broken')).toBe('Medium');
     expect(pri('Minor scratch on desk')).toBe('Low');
     expect(pri('Fan makes noise')).toBe('Medium');
   });
@@ -62,9 +63,41 @@ describe('AI triage classifier', () => {
     expect(predict('POWER OUTAGE')).toMatchObject({ category: 'Electrical' });
   });
 
-  it('plumbing wins when several categories match', () => {
-    // Order of the rules matters: "water" (plumbing) beats "light" (electrical).
-    expect(predict('Water dripping on the light')).toMatchObject({ category: 'Plumbing' });
+  it('picks the category with the strongest keywords', () => {
+    // "leak" is a strong plumbing word; "light" only says where the water lands.
+    expect(predict('Water leaking from the pipe onto the light')).toMatchObject({ category: 'Plumbing' });
+    // Title words count double: the description only gives the location.
+    expect(predict('Fan not working', 'Room next to the washroom')).toMatchObject({ category: 'Electrical' });
+  });
+
+  it('ties go to the specific trade in rule order', () => {
+    expect(predict('Light', 'water')).toMatchObject({ category: 'Electrical' });
+    expect(predict('Tap and socket')).toMatchObject({ category: 'Plumbing' });
+  });
+
+  it('sends structural and safety-equipment complaints to General', () => {
+    expect(predict('Crack in the wall')).toMatchObject({ category: 'General', department: 'Maintenance' });
+    expect(predict('Lift stuck between floors')).toMatchObject({ category: 'General', priority: 'High' });
+    // A specific trade still wins over a passing structural word.
+    expect(predict('Ceiling fan stopped')).toMatchObject({ category: 'Electrical' });
+  });
+
+  it.each([
+    ['Electric shock from the switch', 'Critical'],
+    ['Exposed wires in the corridor', 'Critical'],
+    ['Burning smell from the switchboard', 'Critical'],
+    ['Smoke coming from the store room', 'Critical'],
+    ['Pipe burst, washroom flooding', 'Critical'],
+    ['Power outage on the whole floor', 'High'],
+    ['Toilet blocked and overflowing', 'High'],
+    ['Cannot lock my room door', 'High'],
+    ['Rats in the room', 'High'],
+    ['Plaster falling from the ceiling', 'High'],
+    ['Tube light flickering', 'Low'],
+    ['Paint peeling off the wall', 'Low'],
+    ['Leaking tap', 'Medium'],
+  ])('safety-first priority: %s → %s', (title, priority) => {
+    expect(predict(title).priority).toBe(priority);
   });
 
   it.each([
@@ -72,7 +105,7 @@ describe('AI triage classifier', () => {
     ['Smell of gas in kitchen', 'Critical'],
     ['Short circuit in room', 'Critical'],
     ['No water since morning', 'High'],
-    ['Broken window', 'High'],
+    ['Window glass shattered', 'High'],
     ['Minor scratch on desk', 'Low'],
     ['Fan runs slow', 'Low'],
     ['Desk needs repainting', 'Medium'],

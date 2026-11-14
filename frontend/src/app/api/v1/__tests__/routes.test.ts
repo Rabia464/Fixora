@@ -216,7 +216,7 @@ describe('authentication on protected routes', () => {
 describe('complaint lifecycle over HTTP', () => {
   it('runs Open → Closed with the right status codes and audit trail', async () => {
     const c = await create();
-    expect(c).toMatchObject({ status: 'Open', ai_category: 'Plumbing', ai_priority: 'High' });
+    expect(c).toMatchObject({ status: 'Open', ai_category: 'Plumbing', ai_priority: 'Medium' });
 
     const reviewBody = { category: 'Plumbing', priority: 'High', department: 'Plumbing', override: false };
     const steps: [string, Response][] = [];

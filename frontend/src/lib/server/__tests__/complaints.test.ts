@@ -163,7 +163,11 @@ describe('full lifecycle', () => {
 
   it('records the change from the suggestion when the supervisor overrides', async () => {
     const c = await seedOpen();
-    await supervisorReview(c.id, { ...review, department: 'Maintenance', override: true }, supervisor);
+    await supervisorReview(
+      c.id,
+      { ...review, priority: c.ai_priority, department: 'Maintenance', override: true },
+      supervisor
+    );
     expect(store.audit.at(-1)?.details.changes).toEqual({
       department: { from: 'Plumbing', to: 'Maintenance' },
     });
