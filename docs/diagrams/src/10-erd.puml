@@ -1,0 +1,70 @@
+@startuml
+title ERD - Firestore collections (document store, logical keys)
+hide circle
+skinparam linetype ortho
+
+entity "users" as users {
+  * id : string <<PK>>
+  --
+  * email : string <<unique, lower-case>>
+  * full_name : string
+  hostel : string
+  * role_id : string
+  * role : {id, name} <<embedded>>
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+entity "complaints" as complaints {
+  * id : string <<PK, comp-xxxxxxxx>>
+  --
+  * title : string(150)
+  * description : string(5000)
+  * location : string(200)
+  * hostel : string
+  * status : enum(7)
+  ai_category : string
+  ai_priority : enum
+  ai_department : string
+  * supervisor_override : bool
+  overridden_category : string
+  overridden_priority : enum
+  overridden_department : string
+  * created_by : string <<FK users.id>>
+  supervisor_id : string <<FK users.id>>
+  resolution_notes : string(2000)
+  reopen_reason : string(2000)
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+entity "audit_logs" as audit {
+  * id : string <<PK, uuid>>
+  --
+  * action : string
+  * performed_by : string <<FK users.id>>
+  actor_name : string
+  actor_email : string
+  complaint_id : string <<FK complaints.id>>
+  * details : map
+  * created_at : timestamp
+}
+
+entity "notifications" as notif {
+  * id : string <<PK, uuid>>
+  --
+  * user_id : string <<FK users.id>>
+  * complaint_id : string <<FK complaints.id>>
+  * type : string
+  * payload : map
+  * is_read : bool
+  * created_at : timestamp
+}
+
+users ||--o{ complaints : "files (created_by)"
+users |o--o{ complaints : "supervises (supervisor_id)"
+complaints ||--o{ audit : "has timeline"
+users ||--o{ audit : "performs"
+users ||--o{ notif : "receives"
+complaints ||--o{ notif : "is about"
+@enduml

@@ -1,0 +1,42 @@
+@startuml
+title Sequence - Student submits a complaint (F2, F7, F8, F9)
+autonumber
+actor Student
+participant "Student Dashboard\n(React page)" as UI
+participant "API client\n(lib/api)" as Client
+participant "POST /api/v1/complaints\n(route.ts)" as Route
+participant "AuthService" as Auth
+participant "ComplaintService" as Svc
+participant "TriageClassifier" as AI
+database "Firestore" as DB
+
+Student -> UI : fill title, description, location
+UI -> Client : complaintsApi.create(data)
+Client -> Route : POST JSON + Bearer token
+Route -> Auth : requireUser(request)
+Auth -> Auth : verify JWT (HS256, 8h)
+Auth -> DB : users/{sub}
+DB --> Auth : User
+Auth --> Route : User (role = Student)
+Route -> Svc : createComplaint(input, user)
+Svc -> Svc : role check, hostel check,\ntrim + length limits
+alt missing field / too long
+  Svc --> Route : 400 Bad Request
+  Route --> Client : 400 { detail }
+  Client --> UI : error toast
+else valid
+  Svc -> AI : classifyComplaint(title, description)
+  AI --> Svc : {category, priority, department}
+  Svc -> DB : getSupervisorByHostel(hostel)
+  DB --> Svc : supervisor
+  Svc -> DB : complaints/{id} = {status: Open, ai_*}
+  Svc -> DB : audit_logs += TicketCreated
+  opt supervisor exists
+    Svc -> DB : notifications += ComplaintCreated (to supervisor)
+  end
+  Svc --> Route : Complaint
+  Route --> Client : 201 Complaint
+  Client --> UI : Complaint
+  UI --> Student : new card in "Open" with suggested triage
+end
+@enduml

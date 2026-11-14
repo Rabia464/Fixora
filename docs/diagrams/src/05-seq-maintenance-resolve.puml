@@ -1,0 +1,43 @@
+@startuml
+title Sequence - Maintenance starts work and resolves (F5, F8)
+autonumber
+actor "Maintenance Office" as MO
+participant "Maintenance Dashboard" as UI
+participant "GET /maintenance/complaints" as Queue
+participant "POST /complaints/{id}/progress" as Prog
+participant "POST /complaints/{id}/resolve" as Res
+participant "ComplaintService" as Svc
+participant "Workflow" as WF
+database "Firestore" as DB
+
+MO -> UI : open dashboard
+UI -> Queue : GET
+Queue -> Svc : listMaintenanceQueue(user)
+Svc -> DB : complaints where status in\n[Forwarded, InProgress, Resolved, Closed, Reopened]
+DB --> Svc : list
+Svc --> UI : queue
+
+MO -> UI : "Start work" (optional note)
+UI -> Prog : {note}
+Prog -> Svc : updateProgress(id, note, user)
+Svc -> WF : assertRole + assertTransition('progress')
+note right : Forwarded -> InProgress
+Svc -> DB : transaction: status=InProgress
+Svc -> DB : audit_logs += StatusUpdated
+Svc -> DB : notifications += MaintenanceStarted (to student)
+Prog --> UI : 200
+
+MO -> UI : "Resolve" with resolution note
+UI -> Res : {resolution_note}
+Res -> Svc : resolveComplaint(id, note, user)
+Svc -> WF : assertRole + assertTransition('resolve')
+note right : InProgress -> Resolved
+alt note missing
+  Svc --> Res : 400 Resolution note is required
+else ok
+  Svc -> DB : transaction: status=Resolved, resolution_notes
+  Svc -> DB : audit_logs += StatusUpdated
+  Svc -> DB : notifications += ResolutionPendingConfirmation (to student)
+  Res --> UI : 200
+end
+@enduml

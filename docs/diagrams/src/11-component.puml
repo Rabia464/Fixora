@@ -1,0 +1,69 @@
+@startuml
+title Component Diagram - Next.js app (frontend/)
+skinparam componentStyle uml2
+
+package "Browser (client components)" {
+  [Login page] as Login
+  [Student dashboard] as SD
+  [Supervisor dashboard] as SupD
+  [Maintenance dashboard] as MD
+  [Shared UI\n(TicketDrawer, TicketModal,\nNotificationBell, Badge, Toast)] as UIC
+  [auth-store (Zustand)] as Store
+  [API client (lib/api)] as Client
+}
+
+package "Next.js server (Vercel functions)" {
+  [proxy.ts\nrole route guard] as Proxy
+  package "REST API /api/v1" {
+    [auth: login, me] as AuthR
+    [complaints: list, create, get,\nreview, forward, progress,\nresolve, confirm, reopen, audit_logs] as CompR
+    [maintenance/complaints] as MaintR
+    [notifications, notifications/read] as NotifR
+  }
+  [http.ts\nroute wrapper, errors] as Http
+  [auth.ts\nJWT HS256] as AuthS
+  [complaints.ts\nComplaintService] as Svc
+  [workflow.ts\nstate machine rules] as WF
+  [classifier.ts\nkeyword triage] as AI
+  [domain/complaint.ts\nshared types] as Domain
+  [db.ts\nrepository] as Repo
+  [firebase/admin.ts\nfirebase-admin SDK] as Admin
+}
+
+database "Google Cloud Firestore" as FS
+
+Login --> Store
+SD --> Client
+SupD --> Client
+MD --> Client
+SD --> UIC
+SupD --> UIC
+MD --> UIC
+Store --> Client
+Client --> AuthR : HTTPS JSON\nBearer JWT
+Client --> CompR
+Client --> MaintR
+Client --> NotifR
+Proxy ..> SD : guards /dashboard/*
+
+AuthR --> Http
+CompR --> Http
+MaintR --> Http
+NotifR --> Http
+AuthR --> AuthS
+CompR --> AuthS
+MaintR --> AuthS
+NotifR --> AuthS
+CompR --> Svc
+MaintR --> Svc
+NotifR --> Repo
+Svc --> WF
+Svc --> AI
+Svc --> Repo
+AuthS --> Repo
+WF --> Domain
+AI --> Domain
+Client ..> Domain
+Repo --> Admin
+Admin --> FS : HTTPS / gRPC\n(service account)
+@enduml

@@ -1,0 +1,36 @@
+@startuml
+title Deployment Diagram
+
+node "User device" <<desktop / mobile>> {
+  node "Web browser" {
+    artifact "Fixora client bundle\n(React, Next.js client)" as SPA
+  }
+}
+
+cloud "Vercel" {
+  node "Edge network / CDN" as Edge {
+    artifact "static assets" as Static
+  }
+  node "Serverless Functions (Node 22)" as Fn {
+    artifact "Next.js 16 app\n(app router + /api/v1)" as App
+    artifact "proxy.ts" as Proxy
+  }
+  file "Env vars:\nJWT_SECRET\nFIREBASE_SERVICE_ACCOUNT_KEY" as Env
+}
+
+cloud "Google Cloud" {
+  database "Cloud Firestore\n(users, complaints,\naudit_logs, notifications)" as FS
+}
+
+cloud "GitHub" {
+  node "Repository Rabia464/Fixora" as Repo
+  node "GitHub Actions CI\n(lint, typecheck, tests, build)" as CI
+}
+
+SPA --> Edge : HTTPS
+Edge --> Fn : /api/v1/*, SSR
+Fn --> FS : HTTPS / gRPC\nfirebase-admin
+Fn ..> Env : reads
+Repo --> CI : push / PR
+Repo --> Fn : deploy on merge to main
+@enduml

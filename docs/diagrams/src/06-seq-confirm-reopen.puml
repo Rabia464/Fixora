@@ -1,0 +1,39 @@
+@startuml
+title Sequence - Student confirms or reopens (F6, F8)
+autonumber
+actor Student
+participant "Student Dashboard" as UI
+participant "POST /complaints/{id}/confirm" as Conf
+participant "POST /complaints/{id}/reopen" as Reop
+participant "ComplaintService" as Svc
+participant "Workflow" as WF
+database "Firestore" as DB
+
+Student -> UI : open resolved complaint
+alt problem fixed
+  UI -> Conf : POST
+  Conf -> Svc : confirmResolution(id, user)
+  Svc -> WF : assertRole('confirm', Student)
+  Svc -> DB : transaction: assertTransition (Resolved -> Closed),\nassertOwner, write
+  Svc -> DB : audit_logs += StudentConfirmed
+  Svc -> DB : notifications += ComplaintClosed (to supervisor)
+  Svc -> DB : notifyRole('Maintenance Office', ComplaintClosed)
+  Conf --> UI : 200 (Closed)
+else problem remains
+  Student -> UI : enter reason
+  UI -> Reop : {reason}
+  Reop -> Svc : reopenComplaint(id, reason, user)
+  Svc -> WF : assertRole('reopen', Student)
+  Svc -> DB : transaction: assertTransition\n(Resolved|Closed -> Reopened), assertOwner
+  alt reason missing
+    Svc --> Reop : 400 Reopen reason is required
+  else ok
+    Svc -> DB : write status=Reopened, reopen_reason
+    Svc -> DB : audit_logs += StudentReopened
+    Svc -> DB : notifications += ComplaintReopened (supervisor)
+    Svc -> DB : notifyRole('Maintenance Office', ComplaintReopened)
+    Reop --> UI : 200 (Reopened)
+    note over UI : Supervisor reviews it again\n(Reopened -> UnderReview)
+  end
+end
+@enduml

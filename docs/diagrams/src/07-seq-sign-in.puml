@@ -1,0 +1,34 @@
+@startuml
+title Sequence - Sign in and role routing (F1)
+autonumber
+actor User
+participant "Login page" as UI
+participant "auth-store\n(Zustand)" as Store
+participant "POST /api/v1/auth/login" as Login
+participant "GET /api/v1/auth/me" as Me
+participant "proxy.ts\n(route guard)" as Proxy
+database "Firestore" as DB
+
+User -> UI : enter GIKI email
+UI -> Store : login(email)
+Store -> Login : {email}
+Login -> DB : getUserByEmail(email)
+alt not registered
+  Login --> Store : 401 User not registered
+  Store --> UI : show error
+else found
+  Login -> Login : createAccessToken (HS256, sub, role, 8h)
+  Login --> Store : {access_token, role, user_id}
+  Store -> Store : save token in localStorage;\nset auth_role cookie
+  Store -> Me : GET (Bearer token)
+  Me --> Store : profile (name, hostel, role)
+  UI -> Proxy : navigate /dashboard/{role}
+  Proxy -> Proxy : check auth_role cookie;\nredirect to the matching dashboard
+  Proxy --> User : role dashboard
+end
+note over Login
+  Email-only sign-in is a demo limitation
+  (Scope X6). Every API call re-checks the
+  role claim against the user record.
+end note
+@enduml

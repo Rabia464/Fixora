@@ -1,0 +1,63 @@
+@startuml
+title Activity - Complaint handling end to end (swimlanes)
+|Student|
+start
+:Sign in with GIKI email;
+:Fill title, description, location;
+:Submit complaint;
+|System|
+if (Fields valid and within limits?) then (no)
+  |Student|
+  :See validation error;
+  stop
+else (yes)
+  |System|
+  :Suggest category, priority, department
+  (keyword triage rules);
+  :Save complaint as **Open**;
+  :Log TicketCreated; notify hostel supervisor;
+endif
+repeat
+  |Hostel Supervisor|
+  :Open complaint from hostel queue;
+  :Review triage;
+  if (Suggestion correct?) then (yes)
+    :Keep suggested values;
+  else (no)
+    :Override category / priority / department;
+  endif
+  |System|
+  :Status = **UnderReview**; log review; notify student;
+  |Hostel Supervisor|
+  :Forward to Maintenance Office;
+  |System|
+  :Status = **Forwarded**; notify Maintenance + student;
+  |Maintenance Office|
+  :Start work (optional note);
+  |System|
+  :Status = **InProgress**; notify student;
+  |Maintenance Office|
+  :Fix the problem;
+  :Resolve with resolution note;
+  |System|
+  :Status = **Resolved**; ask student to confirm;
+  |Student|
+  if (Problem fixed?) then (yes)
+    :Confirm resolution;
+    |System|
+    :Status = **Closed**; notify supervisor + Maintenance;
+    |Student|
+    if (Problem returns later?) then (yes)
+      :Reopen with reason;
+      |System|
+      :Status = **Reopened**; notify supervisor + Maintenance;
+    else (no)
+      stop
+    endif
+  else (no)
+    :Reopen with reason;
+    |System|
+    :Status = **Reopened**; notify supervisor + Maintenance;
+  endif
+repeat while (Reopened: back to supervisor review)
+@enduml

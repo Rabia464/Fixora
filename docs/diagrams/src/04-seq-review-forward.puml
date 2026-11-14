@@ -1,0 +1,48 @@
+@startuml
+title Sequence - Supervisor reviews (triage) and forwards (F3, F4, F8)
+autonumber
+actor "Hostel Supervisor" as HS
+participant "Supervisor Dashboard" as UI
+participant "POST /complaints/{id}/review" as Review
+participant "POST /complaints/{id}/forward" as Forward
+participant "ComplaintService" as Svc
+participant "Workflow" as WF
+database "Firestore" as DB
+
+== Review / override triage ==
+HS -> UI : open complaint, pick category,\npriority, department
+UI -> Review : {category, priority, department, override}
+Review -> Svc : supervisorReview(id, input, user)
+Svc -> WF : assertRole('review', role)
+alt not Hostel Supervisor
+  WF --> Review : 403 Forbidden
+end
+Svc -> DB : runTransaction(read complaint)
+Svc -> WF : assertTransition('review', status)
+note right : from Open, Reopened or UnderReview
+alt illegal status
+  WF --> Review : 409 Conflict
+else other hostel
+  Svc --> Review : 403 Forbidden
+else ok
+  Svc -> DB : write status=UnderReview, overridden_*
+  Svc -> DB : audit_logs += SupervisorReviewed /\nSupervisorOverride (with field changes)
+  opt status changed
+    Svc -> DB : notifications += StatusUpdated (to student)
+  end
+  Review --> UI : 200 Complaint
+end
+
+== Forward to Maintenance ==
+HS -> UI : click "Forward"
+UI -> Forward : POST
+Forward -> Svc : forwardToMaintenance(id, user)
+Svc -> WF : assertRole + assertTransition('forward')
+note right : only from UnderReview
+Svc -> DB : transaction: status=Forwarded
+Svc -> DB : audit_logs += ForwardedToMaintenance
+Svc -> DB : notifyRole('Maintenance Office', StatusUpdated)
+Svc -> DB : notifications += StatusUpdated (to student)
+Forward --> UI : 200 Complaint
+UI --> HS : complaint moves to "Forwarded"
+@enduml
