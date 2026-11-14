@@ -1,0 +1,195 @@
+@startuml
+title Fixora - Class Diagram (domain + services)
+skinparam classAttributeIconSize 0
+set separator none
+hide empty members
+
+package "Domain (lib/domain/complaint.ts)" {
+  enum ComplaintStatus {
+    Open
+    UnderReview
+    Forwarded
+    InProgress
+    Resolved
+    Closed
+    Reopened
+  }
+  enum ComplaintPriority {
+    Low
+    Medium
+    High
+    Critical
+  }
+  enum ComplaintCategory {
+    Plumbing
+    Electrical
+    Furniture
+    Sanitation
+    General
+  }
+  enum ComplaintDepartment {
+    Plumbing
+    Electrical
+    Sanitation
+    Maintenance
+  }
+  enum RoleName {
+    Student
+    Hostel Supervisor
+    Maintenance Office
+  }
+
+  class User {
+    +id : string
+    +email : string
+    +full_name : string
+    +hostel : string [0..1]
+    +role_id : string
+    +role : Role
+    +created_at : datetime
+    +updated_at : datetime
+  }
+  class Role {
+    +id : string
+    +name : RoleName
+  }
+  class Complaint {
+    +id : string
+    +title : string {<=150}
+    +description : string {<=5000}
+    +location : string {<=200}
+    +hostel : string
+    +status : ComplaintStatus
+    +ai_category : ComplaintCategory [0..1]
+    +ai_priority : ComplaintPriority [0..1]
+    +ai_department : ComplaintDepartment [0..1]
+    +supervisor_override : boolean
+    +overridden_category : ComplaintCategory [0..1]
+    +overridden_priority : ComplaintPriority [0..1]
+    +overridden_department : ComplaintDepartment [0..1]
+    +created_by : string
+    +supervisor_id : string [0..1]
+    +resolution_notes : string [0..1]
+    +reopen_reason : string [0..1]
+    +created_at : datetime
+    +updated_at : datetime
+    --
+    +effectiveCategory() : string
+    +effectivePriority() : ComplaintPriority
+    +effectiveDepartment() : string
+  }
+  class AuditLog {
+    +id : string
+    +action : AuditAction
+    +performed_by : string
+    +actor_name : string
+    +actor_email : string
+    +complaint_id : string
+    +details : Map
+    +created_at : datetime
+  }
+  class Notification {
+    +id : string
+    +user_id : string
+    +complaint_id : string
+    +type : NotificationType
+    +payload : Map
+    +is_read : boolean
+    +created_at : datetime
+  }
+  enum AuditAction {
+    TicketCreated
+    SupervisorReviewed
+    SupervisorOverride
+    ForwardedToMaintenance
+    StatusUpdated
+    StudentConfirmed
+    StudentReopened
+  }
+  enum NotificationType {
+    ComplaintCreated
+    StatusUpdated
+    MaintenanceStarted
+    ResolutionPendingConfirmation
+    ComplaintReopened
+    ComplaintClosed
+  }
+}
+
+package "Services (lib/server, lib/ai)" {
+  class ComplaintService <<module complaints.ts>> {
+    +createComplaint(input, user) : Complaint
+    +supervisorReview(id, input, user) : Complaint
+    +forwardToMaintenance(id, user) : Complaint
+    +updateProgress(id, note, user) : Complaint
+    +resolveComplaint(id, note, user) : Complaint
+    +confirmResolution(id, user) : Complaint
+    +reopenComplaint(id, reason, user) : Complaint
+    +getVisibleComplaint(id, user) : Complaint
+    +listComplaintsFor(user, status) : Complaint[]
+    +listMaintenanceQueue(user) : Complaint[]
+  }
+  class Workflow <<module workflow.ts>> {
+    +TRANSITIONS : Map<WorkflowAction, TransitionRule>
+    +assertTransition(action, current) : ComplaintStatus
+    +assertRole(action, role) : void
+  }
+  class TransitionRule {
+    +from : ComplaintStatus[]
+    +to : ComplaintStatus
+    +role : RoleName
+    +message : string
+  }
+  class TriageClassifier <<module classifier.ts>> {
+    +classifyComplaint(title, description) : AIPrediction
+  }
+  class AIPrediction {
+    +category : ComplaintCategory
+    +priority : ComplaintPriority
+    +department : string
+  }
+  class Repository <<module db.ts (Firestore)>> {
+    +getUserByEmail(email) : User
+    +getUserById(id) : User
+    +getSupervisorByHostel(hostel) : User
+    +getComplaints(filters) : Complaint[]
+    +updateComplaint(id, mutate) : Complaint  <<transaction>>
+    +saveComplaint(c) : Complaint
+    +addAuditLog(log) : AuditLog
+    +addNotification(n) : Notification
+    +notifyRole(role, n) : void
+    +markAllNotificationsRead(userId) : void
+  }
+  class AuthService <<module auth.ts>> {
+    +createAccessToken(user) : JWT
+    +verifyAccessToken(token) : Claims
+    +requireUser(request) : User
+  }
+  class WorkflowError {
+    +status : 403 | 409 | 422
+  }
+}
+
+User "1" *-- "1" Role
+Role --> RoleName
+User "1" -- "0..*" Complaint : files >
+User "0..1" -- "0..*" Complaint : supervises >
+Complaint "1" *-- "0..*" AuditLog : timeline
+User "1" -- "0..*" AuditLog : performs >
+User "1" -- "0..*" Notification : receives >
+Complaint "1" -- "0..*" Notification : about <
+Complaint --> ComplaintStatus
+Complaint --> ComplaintPriority
+Complaint --> ComplaintCategory
+Complaint --> ComplaintDepartment
+AuditLog --> AuditAction
+Notification --> NotificationType
+
+ComplaintService ..> Workflow : uses
+ComplaintService ..> TriageClassifier : uses
+ComplaintService ..> Repository : uses
+Workflow *-- "6" TransitionRule
+Workflow ..> WorkflowError : throws
+TriageClassifier ..> AIPrediction : creates
+AuthService ..> Repository : uses
+@enduml

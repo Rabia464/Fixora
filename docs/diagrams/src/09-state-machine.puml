@@ -1,0 +1,25 @@
+@startuml
+title State Machine - Complaint status (server-enforced, lib/server/workflow.ts)
+
+[*] --> Open : Student submits\n/ triage suggested
+Open --> UnderReview : review\n[Hostel Supervisor, own hostel]
+Reopened --> UnderReview : review\n[Hostel Supervisor, own hostel]
+UnderReview --> UnderReview : review again\n(re-adjust triage)
+UnderReview --> Forwarded : forward\n[Hostel Supervisor]
+Forwarded --> InProgress : progress\n[Maintenance Office]
+InProgress --> Resolved : resolve [note given]\n[Maintenance Office]
+Resolved --> Closed : confirm\n[Student, owner]
+Resolved --> Reopened : reopen [reason given]\n[Student, owner]
+Closed --> Reopened : reopen [reason given]\n[Student, owner]
+Closed --> [*]
+
+state Open : entry / notify supervisor
+state UnderReview : entry / notify student (on status change)
+state Forwarded : entry / notify Maintenance + student
+state InProgress : entry / notify student (MaintenanceStarted)
+state Resolved : entry / notify student (pending confirmation)
+state Closed : entry / notify supervisor + Maintenance
+state Reopened : entry / notify supervisor + Maintenance
+
+note "Any other action, or the right action\nby the wrong role, is rejected:\n409 Conflict (status) / 403 Forbidden (role).\nEach transition runs in a Firestore\ntransaction and writes an audit log." as N
+@enduml

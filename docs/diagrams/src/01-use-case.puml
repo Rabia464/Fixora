@@ -1,0 +1,63 @@
+@startuml
+title Fixora - Use Case Diagram
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "Student" as S
+actor "Hostel Supervisor" as HS
+actor "Maintenance Office" as MO
+actor "Portal user" as U
+actor "Triage Rules\n(keyword classifier)" as AI <<system>>
+
+rectangle "Fixora Hostel Complaint Portal" {
+  package "Student" as PS {
+    usecase "UC2 Submit complaint (F2)" as UC2
+    usecase "UC4 View own complaints (F2)" as UC4
+    usecase "UC5 Confirm resolution (F6)" as UC5
+    usecase "UC6 Reopen complaint (F6)" as UC6
+  }
+  package "Shared" as PC {
+    usecase "UC1 Sign in with GIKI email (F1)" as UC1
+    usecase "UC14 View notifications,\nmark as read (F8)" as UC14
+    usecase "UC15 View complaint\ntimeline (F7)" as UC15
+    usecase "UC3 Suggest category, priority,\ndepartment (F9)" as UC3
+  }
+  package "Supervision" as PH {
+    usecase "UC7 Review complaint (F4)" as UC7
+    usecase "UC8 Override triage (F4)" as UC8
+    usecase "UC9 Forward to Maintenance (F4)" as UC9
+    usecase "UC10 View hostel overview\nby status / category (F10)" as UC10
+  }
+  package "Maintenance" as PM {
+    usecase "UC11 View maintenance queue (F5)" as UC11
+    usecase "UC12 Mark In Progress (F5)" as UC12
+    usecase "UC13 Resolve with notes (F5)" as UC13
+  }
+}
+
+S --> UC2
+S --> UC4
+S --> UC5
+S --> UC6
+
+HS --> UC7
+HS --> UC9
+HS --> UC10
+
+MO --> UC11
+MO --> UC12
+MO --> UC13
+
+U --> UC1
+U --> UC14
+U --> UC15
+U <|-- S
+U <|-- HS
+U <|-- MO
+
+UC2 ..> UC3 : <<include>>
+UC3 <-- AI
+UC7 <.. UC8 : <<extend>>
+
+@enduml
