@@ -278,3 +278,73 @@ async def test_get_missing_complaint_returns_404(integration_client: AsyncClient
         f"/api/v1/complaints/{uuid.uuid4()}", headers=supervisor
     )
     assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_supervisor_can_adjust_triage_again_before_forwarding(
+    integration_client: AsyncClient, auth_headers
+):
+    student = await auth_headers("student@giki.edu.pk")
+    supervisor = await auth_headers("supervisor@giki.edu.pk")
+    complaint_id = await _create_open_complaint(integration_client, student)
+
+    first = await integration_client.patch(
+        f"/api/v1/complaints/{complaint_id}/review",
+        headers=supervisor,
+        json={
+            "category": "Electrical",
+            "priority": "High",
+            "department": "Electrical",
+            "override": True,
+        },
+    )
+    assert first.status_code == 200, first.text
+
+    second = await integration_client.patch(
+        f"/api/v1/complaints/{complaint_id}/review",
+        headers=supervisor,
+        json={
+            "category": "Furniture",
+            "priority": "Low",
+            "department": "Maintenance",
+            "override": True,
+        },
+    )
+    assert second.status_code == 200, second.text
+    body = second.json()
+    assert body["status"] == "UnderReview"
+    assert body["overridden_category"] == "Furniture"
+    assert body["overridden_department"] == "Maintenance"
+
+    forward = await integration_client.patch(
+        f"/api/v1/complaints/{complaint_id}/forward", headers=supervisor
+    )
+    assert forward.status_code == 200, forward.text
+
+
+@pytest.mark.asyncio
+async def test_student_is_notified_when_reviewed_and_forwarded(
+    integration_client: AsyncClient, auth_headers
+):
+    student = await auth_headers("student@giki.edu.pk")
+    supervisor = await auth_headers("supervisor@giki.edu.pk")
+    maintenance = await auth_headers("maintenance@giki.edu.pk")
+    complaint_id = await _create_open_complaint(integration_client, student)
+    await _advance_to(
+        integration_client,
+        complaint_id,
+        "Forwarded",
+        student=student,
+        supervisor=supervisor,
+        maintenance=maintenance,
+    )
+
+    response = await integration_client.get("/api/v1/notifications/", headers=student)
+    assert response.status_code == 200, response.text
+    statuses = [
+        n["payload"].get("status")
+        for n in response.json()
+        if n["complaint_id"] == complaint_id and n["type"] == "StatusUpdated"
+    ]
+    assert "UnderReview" in statuses
+    assert "Forwarded" in statuses

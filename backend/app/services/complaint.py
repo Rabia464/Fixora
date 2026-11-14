@@ -237,8 +237,12 @@ class ComplaintService:
             self._assert_complaint_supervisor_access(complaint, user)
             self._assert_status(
                 complaint,
-                [ComplaintStatus.OPEN, ComplaintStatus.REOPENED],
-                "Complaint must be in Open or Reopened status to review.",
+                [
+                    ComplaintStatus.OPEN,
+                    ComplaintStatus.REOPENED,
+                    ComplaintStatus.UNDER_REVIEW,
+                ],
+                "Complaint must be in Open, Reopened or Under Review status to review.",
             )
 
             previous_status = complaint.status
@@ -267,6 +271,21 @@ class ComplaintService:
                     "new_status": ComplaintStatus.UNDER_REVIEW.value,
                 },
             )
+
+            # A re-review that only adjusts the triage doesn't change the
+            # student's status, so only the move into review is announced.
+            if previous_status != ComplaintStatus.UNDER_REVIEW:
+                await notification_service.notify_user(
+                    db,
+                    user_id=complaint.created_by,
+                    complaint_id=complaint.id,
+                    notification_type=NotificationType.STATUS_UPDATED,
+                    payload={
+                        "complaint_id": str(complaint.id),
+                        "title": complaint.title,
+                        "status": ComplaintStatus.UNDER_REVIEW.value,
+                    },
+                )
 
             await db.commit()
             return ComplaintResponse.model_validate(complaint)
@@ -309,6 +328,18 @@ class ComplaintService:
             await notification_service.notify_role(
                 db,
                 role=UserRole.MAINTENANCE_OFFICE,
+                complaint_id=complaint.id,
+                notification_type=NotificationType.STATUS_UPDATED,
+                payload={
+                    "complaint_id": str(complaint.id),
+                    "title": complaint.title,
+                    "status": ComplaintStatus.FORWARDED.value,
+                },
+            )
+
+            await notification_service.notify_user(
+                db,
+                user_id=complaint.created_by,
                 complaint_id=complaint.id,
                 notification_type=NotificationType.STATUS_UPDATED,
                 payload={

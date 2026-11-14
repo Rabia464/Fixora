@@ -1,0 +1,805 @@
+{
+  "_note": "100 realistic, synthetic hostel complaints written by the project team for the triage evaluation (Feasibility Report objective 3). Labels are the category, priority and department a hostel supervisor would assign. They are NOT real student complaints; replace or extend them with supervisor-verified, anonymised real complaints before quoting accuracy as real-world evidence.",
+  "samples": [
+    {
+      "id": "t001",
+      "title": "Tap leaking in washroom",
+      "description": "The tap in the second floor washroom drips all day and night.",
+      "category": "Plumbing",
+      "priority": "Medium",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t002",
+      "title": "No water in hostel since morning",
+      "description": "None of the taps or showers on our floor have any water since 7am.",
+      "category": "Plumbing",
+      "priority": "High",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t003",
+      "title": "Washroom flooded",
+      "description": "Water is overflowing from a burst pipe and the washroom floor is flooded up to the corridor.",
+      "category": "Plumbing",
+      "priority": "Critical",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t004",
+      "title": "Geyser not heating",
+      "description": "The geyser on the first floor gives only cold water.",
+      "category": "Plumbing",
+      "priority": "Medium",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t005",
+      "title": "Toilet blocked",
+      "description": "The toilet in cubicle 3 is blocked and overflowing when flushed.",
+      "category": "Plumbing",
+      "priority": "High",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t006",
+      "title": "Shower head broken",
+      "description": "The shower head came off and water sprays everywhere.",
+      "category": "Plumbing",
+      "priority": "Medium",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t007",
+      "title": "Low water pressure",
+      "description": "Water pressure on the top floor is very weak in the mornings.",
+      "category": "Plumbing",
+      "priority": "Low",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t008",
+      "title": "Sink drain slow",
+      "description": "The basin drain empties very slowly.",
+      "category": "Plumbing",
+      "priority": "Low",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t009",
+      "title": "Water cooler leaking",
+      "description": "The water cooler near the stairs leaks onto the floor.",
+      "category": "Plumbing",
+      "priority": "Medium",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t010",
+      "title": "Pipe burst behind wall",
+      "description": "There is a loud hissing sound and water seeping from the wall near room 12.",
+      "category": "Plumbing",
+      "priority": "Critical",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t011",
+      "title": "Flush tank keeps running",
+      "description": "The cistern keeps filling and the water never stops running.",
+      "category": "Plumbing",
+      "priority": "Medium",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t012",
+      "title": "Dirty water from taps",
+      "description": "Brown water is coming from all the taps on our floor.",
+      "category": "Plumbing",
+      "priority": "High",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t013",
+      "title": "Commode seat loose",
+      "description": "The commode in the ground floor washroom moves when you sit on it.",
+      "category": "Plumbing",
+      "priority": "Low",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t014",
+      "title": "Hot water pipe dripping",
+      "description": "The hot water line above the shower drips continuously.",
+      "category": "Plumbing",
+      "priority": "Medium",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t015",
+      "title": "Washbasin cracked and leaking",
+      "description": "The washbasin has a crack and leaks water onto the floor.",
+      "category": "Plumbing",
+      "priority": "Medium",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t016",
+      "title": "Water tank overflowing",
+      "description": "The rooftop tank overflows every night and water runs down the wall.",
+      "category": "Plumbing",
+      "priority": "Medium",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t017",
+      "title": "Bathroom drain smells and backs up",
+      "description": "Dirty water comes back up through the shower drain.",
+      "category": "Plumbing",
+      "priority": "High",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t018",
+      "title": "Tap handle came off",
+      "description": "The handle of the tap in the kitchenette came off in my hand.",
+      "category": "Plumbing",
+      "priority": "Low",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t019",
+      "title": "Seepage on ceiling",
+      "description": "There is damp seepage on my room ceiling under the washroom above.",
+      "category": "Plumbing",
+      "priority": "Medium",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t020",
+      "title": "Mixer valve stuck",
+      "description": "The hot and cold mixer in the shower is stuck on cold.",
+      "category": "Plumbing",
+      "priority": "Low",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t021",
+      "title": "Urinal not flushing",
+      "description": "The urinal flush in the first floor washroom does not work.",
+      "category": "Plumbing",
+      "priority": "Medium",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t022",
+      "title": "Water dispenser not working",
+      "description": "The drinking water dispenser on our floor has no water.",
+      "category": "Plumbing",
+      "priority": "High",
+      "department": "Plumbing"
+    },
+    {
+      "id": "t023",
+      "title": "Light not working in room",
+      "description": "The ceiling light in my room does not turn on.",
+      "category": "Electrical",
+      "priority": "Medium",
+      "department": "Electrical"
+    },
+    {
+      "id": "t024",
+      "title": "Sparks from switchboard",
+      "description": "The switchboard sparks when I press the fan switch.",
+      "category": "Electrical",
+      "priority": "Critical",
+      "department": "Electrical"
+    },
+    {
+      "id": "t025",
+      "title": "No power in my room",
+      "description": "There has been no electricity in room 18 since last night.",
+      "category": "Electrical",
+      "priority": "High",
+      "department": "Electrical"
+    },
+    {
+      "id": "t026",
+      "title": "Fan not working",
+      "description": "The ceiling fan does not move at all.",
+      "category": "Electrical",
+      "priority": "Medium",
+      "department": "Electrical"
+    },
+    {
+      "id": "t027",
+      "title": "Exposed wires in corridor",
+      "description": "Live wires are hanging out of the junction box in the corridor.",
+      "category": "Electrical",
+      "priority": "Critical",
+      "department": "Electrical"
+    },
+    {
+      "id": "t028",
+      "title": "Socket loose",
+      "description": "The socket next to my desk is loose in the wall.",
+      "category": "Electrical",
+      "priority": "Medium",
+      "department": "Electrical"
+    },
+    {
+      "id": "t029",
+      "title": "AC not cooling",
+      "description": "The air conditioner in the common room runs but does not cool.",
+      "category": "Electrical",
+      "priority": "Low",
+      "department": "Electrical"
+    },
+    {
+      "id": "t030",
+      "title": "Bulb fused in washroom",
+      "description": "The bulb in the washroom is fused, it is dark at night.",
+      "category": "Electrical",
+      "priority": "Medium",
+      "department": "Electrical"
+    },
+    {
+      "id": "t031",
+      "title": "Burning smell from switchboard",
+      "description": "There is a burning plastic smell coming from the switchboard.",
+      "category": "Electrical",
+      "priority": "Critical",
+      "department": "Electrical"
+    },
+    {
+      "id": "t032",
+      "title": "Tube light flickering",
+      "description": "The tube light flickers on and off.",
+      "category": "Electrical",
+      "priority": "Low",
+      "department": "Electrical"
+    },
+    {
+      "id": "t033",
+      "title": "Power trips when kettle used",
+      "description": "The breaker trips every time someone uses a kettle on our floor.",
+      "category": "Electrical",
+      "priority": "High",
+      "department": "Electrical"
+    },
+    {
+      "id": "t034",
+      "title": "Fan regulator not working",
+      "description": "The fan only runs at full speed, the regulator does nothing.",
+      "category": "Electrical",
+      "priority": "Low",
+      "department": "Electrical"
+    },
+    {
+      "id": "t035",
+      "title": "Short circuit in room",
+      "description": "There was a short circuit and smoke came from the socket.",
+      "category": "Electrical",
+      "priority": "Critical",
+      "department": "Electrical"
+    },
+    {
+      "id": "t036",
+      "title": "Corridor lights off",
+      "description": "The corridor is completely dark at night.",
+      "category": "Electrical",
+      "priority": "High",
+      "department": "Electrical"
+    },
+    {
+      "id": "t037",
+      "title": "Electric shock from switch",
+      "description": "I got a small electric shock when touching the light switch.",
+      "category": "Electrical",
+      "priority": "Critical",
+      "department": "Electrical"
+    },
+    {
+      "id": "t038",
+      "title": "Exhaust fan not working",
+      "description": "The washroom exhaust fan does not turn on.",
+      "category": "Electrical",
+      "priority": "Low",
+      "department": "Electrical"
+    },
+    {
+      "id": "t039",
+      "title": "Heater not working",
+      "description": "The room heater provided by the hostel does not turn on.",
+      "category": "Electrical",
+      "priority": "Medium",
+      "department": "Electrical"
+    },
+    {
+      "id": "t040",
+      "title": "Emergency light dead",
+      "description": "The emergency light near the staircase does not work.",
+      "category": "Electrical",
+      "priority": "Medium",
+      "department": "Electrical"
+    },
+    {
+      "id": "t041",
+      "title": "Plug point burnt",
+      "description": "One plug point in my room is burnt black.",
+      "category": "Electrical",
+      "priority": "High",
+      "department": "Electrical"
+    },
+    {
+      "id": "t042",
+      "title": "Lights flicker during evening",
+      "description": "All lights in the block dim and flicker in the evening.",
+      "category": "Electrical",
+      "priority": "Medium",
+      "department": "Electrical"
+    },
+    {
+      "id": "t043",
+      "title": "Switch broken",
+      "description": "The switch for the study lamp is broken and stuck.",
+      "category": "Electrical",
+      "priority": "Low",
+      "department": "Electrical"
+    },
+    {
+      "id": "t044",
+      "title": "Wifi router has no power",
+      "description": "The wifi router on our floor is not powered.",
+      "category": "Electrical",
+      "priority": "Medium",
+      "department": "Electrical"
+    },
+    {
+      "id": "t045",
+      "title": "Bed frame broken",
+      "description": "The bed frame has broken on one side.",
+      "category": "Furniture",
+      "priority": "High",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t046",
+      "title": "Chair leg wobbly",
+      "description": "My study chair wobbles because one leg is loose.",
+      "category": "Furniture",
+      "priority": "Low",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t047",
+      "title": "Door lock not working",
+      "description": "My room door lock is broken and the room cannot be locked.",
+      "category": "Furniture",
+      "priority": "High",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t048",
+      "title": "Window does not close",
+      "description": "The window in my room does not close properly and rain comes in.",
+      "category": "Furniture",
+      "priority": "Medium",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t049",
+      "title": "Cupboard shelf collapsed",
+      "description": "A shelf inside my cupboard has collapsed.",
+      "category": "Furniture",
+      "priority": "Low",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t050",
+      "title": "Study table drawer stuck",
+      "description": "The drawer of my study table is stuck and will not open.",
+      "category": "Furniture",
+      "priority": "Low",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t051",
+      "title": "Door hinge loose",
+      "description": "The room door hinge is loose and the door drags on the floor.",
+      "category": "Furniture",
+      "priority": "Medium",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t052",
+      "title": "Window glass broken",
+      "description": "The window glass is broken and there are sharp pieces on the floor.",
+      "category": "Furniture",
+      "priority": "High",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t053",
+      "title": "Wardrobe lock jammed",
+      "description": "The wardrobe lock is jammed and my clothes are inside.",
+      "category": "Furniture",
+      "priority": "Medium",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t054",
+      "title": "Mattress torn",
+      "description": "My mattress is torn and the foam is coming out.",
+      "category": "Furniture",
+      "priority": "Low",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t055",
+      "title": "Curtain rod fell",
+      "description": "The curtain rod fell off the wall.",
+      "category": "Furniture",
+      "priority": "Low",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t056",
+      "title": "Bookshelf wobbling",
+      "description": "The wall-mounted bookshelf is coming loose from the wall.",
+      "category": "Furniture",
+      "priority": "Medium",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t057",
+      "title": "Main door latch broken",
+      "description": "The hostel block main door latch is broken and the door stays open at night.",
+      "category": "Furniture",
+      "priority": "High",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t058",
+      "title": "Bed slats missing",
+      "description": "Two slats are missing from my bed and the mattress sinks.",
+      "category": "Furniture",
+      "priority": "Medium",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t059",
+      "title": "Table top cracked",
+      "description": "The top of my study table has a large crack.",
+      "category": "Furniture",
+      "priority": "Low",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t060",
+      "title": "Mosquito net on window torn",
+      "description": "The wire mesh on my window is torn.",
+      "category": "Furniture",
+      "priority": "Low",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t061",
+      "title": "Door handle came off",
+      "description": "The handle of my room door came off.",
+      "category": "Furniture",
+      "priority": "Medium",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t062",
+      "title": "Common room sofa broken",
+      "description": "The sofa in the common room has a broken frame.",
+      "category": "Furniture",
+      "priority": "Low",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t063",
+      "title": "Washroom door does not lock",
+      "description": "The lock on the washroom cubicle door does not work.",
+      "category": "Furniture",
+      "priority": "Medium",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t064",
+      "title": "Locker damaged",
+      "description": "My locker door is bent and does not close.",
+      "category": "Furniture",
+      "priority": "Medium",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t065",
+      "title": "Washroom not cleaned",
+      "description": "The washrooms on the second floor have not been cleaned for two days.",
+      "category": "Sanitation",
+      "priority": "Medium",
+      "department": "Sanitation"
+    },
+    {
+      "id": "t066",
+      "title": "Garbage bin overflowing",
+      "description": "The garbage bin in the corridor is overflowing.",
+      "category": "Sanitation",
+      "priority": "Medium",
+      "department": "Sanitation"
+    },
+    {
+      "id": "t067",
+      "title": "Rats in the room",
+      "description": "There are rats in my room at night.",
+      "category": "Sanitation",
+      "priority": "High",
+      "department": "Sanitation"
+    },
+    {
+      "id": "t068",
+      "title": "Cockroaches in kitchenette",
+      "description": "There are many cockroaches in the kitchenette.",
+      "category": "Sanitation",
+      "priority": "Medium",
+      "department": "Sanitation"
+    },
+    {
+      "id": "t069",
+      "title": "Bad smell in corridor",
+      "description": "There is a strong bad smell in the corridor.",
+      "category": "Sanitation",
+      "priority": "Medium",
+      "department": "Sanitation"
+    },
+    {
+      "id": "t070",
+      "title": "Mosquitoes in rooms",
+      "description": "There are a lot of mosquitoes in the rooms, please spray.",
+      "category": "Sanitation",
+      "priority": "Medium",
+      "department": "Sanitation"
+    },
+    {
+      "id": "t071",
+      "title": "Dead bird on roof",
+      "description": "There is a dead bird on the roof near the water tank.",
+      "category": "Sanitation",
+      "priority": "High",
+      "department": "Sanitation"
+    },
+    {
+      "id": "t072",
+      "title": "Bed bugs in room",
+      "description": "I have bed bugs in my room.",
+      "category": "Sanitation",
+      "priority": "High",
+      "department": "Sanitation"
+    },
+    {
+      "id": "t073",
+      "title": "Stairs very dirty",
+      "description": "The staircase has not been swept and is very dirty.",
+      "category": "Sanitation",
+      "priority": "Low",
+      "department": "Sanitation"
+    },
+    {
+      "id": "t074",
+      "title": "Trash not collected",
+      "description": "Trash has not been collected from our block this week.",
+      "category": "Sanitation",
+      "priority": "Medium",
+      "department": "Sanitation"
+    },
+    {
+      "id": "t075",
+      "title": "Common room dusty",
+      "description": "The common room is dusty and needs cleaning.",
+      "category": "Sanitation",
+      "priority": "Low",
+      "department": "Sanitation"
+    },
+    {
+      "id": "t076",
+      "title": "Termites in cupboard",
+      "description": "There are termites eating the wood of my cupboard.",
+      "category": "Sanitation",
+      "priority": "Medium",
+      "department": "Sanitation"
+    },
+    {
+      "id": "t077",
+      "title": "Washroom floor slimy",
+      "description": "The washroom floor is slimy with algae and someone slipped.",
+      "category": "Sanitation",
+      "priority": "High",
+      "department": "Sanitation"
+    },
+    {
+      "id": "t078",
+      "title": "Pest control needed",
+      "description": "Please arrange pest control for the ground floor, insects everywhere.",
+      "category": "Sanitation",
+      "priority": "Medium",
+      "department": "Sanitation"
+    },
+    {
+      "id": "t079",
+      "title": "Vomit in corridor",
+      "description": "Someone was sick in the corridor and it has not been cleaned.",
+      "category": "Sanitation",
+      "priority": "Medium",
+      "department": "Sanitation"
+    },
+    {
+      "id": "t080",
+      "title": "Lizards in room",
+      "description": "There are lizards in my room.",
+      "category": "Sanitation",
+      "priority": "Low",
+      "department": "Sanitation"
+    },
+    {
+      "id": "t081",
+      "title": "Kitchenette sink dirty",
+      "description": "The kitchenette sink is full of old food and smells.",
+      "category": "Sanitation",
+      "priority": "Medium",
+      "department": "Sanitation"
+    },
+    {
+      "id": "t082",
+      "title": "Ants on the floor",
+      "description": "Lines of ants on the floor of my room.",
+      "category": "Sanitation",
+      "priority": "Low",
+      "department": "Sanitation"
+    },
+    {
+      "id": "t083",
+      "title": "Wall paint peeling",
+      "description": "The paint on my wall is peeling off.",
+      "category": "General",
+      "priority": "Low",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t084",
+      "title": "Ceiling plaster falling",
+      "description": "Pieces of plaster are falling from the ceiling above my bed.",
+      "category": "General",
+      "priority": "High",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t085",
+      "title": "Room needs repainting",
+      "description": "My room walls are very stained and need painting.",
+      "category": "General",
+      "priority": "Low",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t086",
+      "title": "Notice board broken",
+      "description": "The notice board in the lobby has fallen down.",
+      "category": "General",
+      "priority": "Low",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t087",
+      "title": "Crack in the wall",
+      "description": "There is a long crack in the wall of my room that is getting bigger.",
+      "category": "General",
+      "priority": "Medium",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t088",
+      "title": "Floor tile broken",
+      "description": "A floor tile in my room is broken and has a sharp edge.",
+      "category": "General",
+      "priority": "Medium",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t089",
+      "title": "Staircase railing loose",
+      "description": "The staircase railing on the second floor is loose and shakes.",
+      "category": "General",
+      "priority": "High",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t090",
+      "title": "Roof leaking when it rains",
+      "description": "Rain water comes in through the roof onto my bed.",
+      "category": "General",
+      "priority": "High",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t091",
+      "title": "Mirror missing in washroom",
+      "description": "The washroom mirror is missing.",
+      "category": "General",
+      "priority": "Low",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t092",
+      "title": "Clothes line broken",
+      "description": "The clothes drying line on the roof is broken.",
+      "category": "General",
+      "priority": "Low",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t093",
+      "title": "Gas heater smell",
+      "description": "There is a gas smell near the common room heater.",
+      "category": "General",
+      "priority": "Critical",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t094",
+      "title": "Fire extinguisher empty",
+      "description": "The fire extinguisher on our floor is expired and empty.",
+      "category": "General",
+      "priority": "High",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t095",
+      "title": "Lift not working",
+      "description": "The lift in block B is stuck between floors.",
+      "category": "General",
+      "priority": "High",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t096",
+      "title": "Smoke from the store room",
+      "description": "Smoke is coming out of the store room under the stairs.",
+      "category": "General",
+      "priority": "Critical",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t097",
+      "title": "Broken glass in courtyard",
+      "description": "There is broken glass all over the courtyard.",
+      "category": "General",
+      "priority": "Medium",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t098",
+      "title": "Balcony door cannot open",
+      "description": "The balcony door is jammed shut.",
+      "category": "General",
+      "priority": "Medium",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t099",
+      "title": "Laundry room machine broken",
+      "description": "The washing machine in the laundry room does not start.",
+      "category": "General",
+      "priority": "Medium",
+      "department": "Maintenance"
+    },
+    {
+      "id": "t100",
+      "title": "Ceiling damp and mouldy",
+      "description": "The ceiling in my room is damp and has mould.",
+      "category": "General",
+      "priority": "Medium",
+      "department": "Maintenance"
+    }
+  ]
+}

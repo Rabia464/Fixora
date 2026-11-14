@@ -27,7 +27,19 @@ export function describeNotification(n: NotificationItem): { headline: string; d
     case 'ComplaintClosed':
       return { headline: `"${title}" is closed` };
     case 'StatusUpdated':
-      return { headline: `"${title}" was updated`, detail: str(p.status) ? `New status: ${str(p.status)}` : undefined };
+      switch (str(p.status)) {
+        case 'UnderReview':
+          return { headline: `"${title}" is being reviewed by your hostel supervisor` };
+        case 'Forwarded':
+          return {
+            headline: `"${title}" was sent to the Maintenance Office`,
+            detail: [str(p.priority) && `${str(p.priority)} priority`, str(p.department), str(p.location)]
+              .filter(Boolean)
+              .join(' • ') || undefined,
+          };
+        default:
+          return { headline: `"${title}" was updated`, detail: str(p.status) ? `New status: ${str(p.status)}` : undefined };
+      }
     default:
       return { headline: `Update on "${title}"` };
   }

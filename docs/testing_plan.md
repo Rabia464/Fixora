@@ -18,8 +18,17 @@ What is tested today and what is still missing. Commands are in the
 | Service | `src/lib/server/__tests__/complaints.test.ts` | Lifecycle, state, role and hostel/ownership guards, validation, audit and notification side effects |
 | Auth | `src/lib/server/__tests__/auth.test.ts` | Token signing, expiry, tampering, role re-validation |
 | AI triage | `src/lib/ai/__tests__/classifier.test.ts` | Category, department and priority rules and their precedence |
+| Triage evaluation | `src/lib/ai/__tests__/evaluation.test.ts` | Agreement, confusion and safety metrics; validity of the 100-complaint sample |
+| Seed data | `src/lib/server/__tests__/seed-data.test.ts` | Every seeded complaint follows a legal lifecycle path by the right roles, matches the triage rules and its hostel; the student is notified of each change |
+| UI helpers | `src/lib/ui/__tests__/ticket.test.ts` | Status labels, sorting, timeline detail formatting |
 | API client | `src/lib/api/__tests__/client.test.ts` | URL building, bearer header, error mapping, 401 logout and redirect |
 | Reference backend | `backend/tests/` | Auth, complaints, RBAC and transitions, lifecycle integration |
+
+## Evaluation and demo
+
+The triage accuracy measurement, the usability check, the functional test
+count and the end-to-end demo script are described in
+[evaluation.md](evaluation.md).
 
 ## Not yet covered
 
