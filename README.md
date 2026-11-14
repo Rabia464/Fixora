@@ -62,8 +62,10 @@ npm run seed -- --reset              # demo users + sample complaints
 npm run dev                          # http://localhost:3000
 ```
 
-`npm run seed` upserts the three demo users and, with `--reset`, wipes and
-re-creates the sample complaints, audit log and notifications.
+`npm run seed` upserts the six demo users (two hostels) and writes 20 sample
+complaints in every status, each with a matching audit trail and
+notifications. With `--reset` it first wipes the existing complaints, audit log
+and notifications. The data lives in `frontend/scripts/seed-data.mjs`.
 
 #### Deploying to Vercel
 
@@ -133,8 +135,16 @@ Authentication is email-only (no passwords) — this is a demo system. Log in wi
 | Role | Email | Assigned Hostel | Dashboard Route |
 | :--- | :--- | :--- | :--- |
 | **Student** | `student@giki.edu.pk` | Hostel A | `/dashboard/student` |
+| **Student** | `student2@giki.edu.pk` | Hostel A | `/dashboard/student` |
+| **Student** | `student.b@giki.edu.pk` | Hostel B | `/dashboard/student` |
 | **Hostel Supervisor** | `supervisor@giki.edu.pk` | Hostel A | `/dashboard/supervisor` |
+| **Hostel Supervisor** | `supervisor.b@giki.edu.pk` | Hostel B | `/dashboard/supervisor` |
 | **Maintenance Office** | `maintenance@giki.edu.pk` | All Hostels | `/dashboard/maintenance` |
+
+The quick-role buttons on `/login` use the first account of each role. The
+Hostel B accounts are there to demonstrate that a supervisor only sees their
+own hostel. A step-by-step demo script and the evaluation procedures are in
+[docs/evaluation.md](docs/evaluation.md).
 
 ---
 

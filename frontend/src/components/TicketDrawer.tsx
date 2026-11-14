@@ -10,6 +10,7 @@ import type { ToastType } from '../hooks/useToast';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { useAuthStore } from '../stores/auth-store';
 import {
+  formatAuditDetail,
   PROGRESS_STEPS,
   effectiveCategory,
   effectivePriority,
@@ -121,15 +122,6 @@ export const TicketDrawer: React.FC<TicketDrawerProps> = ({
 
   const formatActionTitle = (action: string) => {
     return action.replace(/([A-Z])/g, ' $1').trim().replace(/^./, str => str.toUpperCase());
-  };
-
-  const formatDetailKey = (key: string) =>
-    key.replace(/_/g, ' ').replace(/^./, str => str.toUpperCase());
-
-  const formatDetailValue = (val: unknown) => {
-    if (typeof val === 'boolean') return val ? 'Yes' : 'No';
-    if (val && typeof val === 'object') return JSON.stringify(val);
-    return String(val);
   };
 
   // Portal to <body> so the fixed overlay isn't trapped inside an animated
@@ -272,13 +264,14 @@ export const TicketDrawer: React.FC<TicketDrawerProps> = ({
                   </div>
                   {log.details && Object.keys(log.details).length > 0 && (
                     <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '4px', background: 'var(--glass-bg)', padding: '6px 8px', borderRadius: '6px' }}>
-                      {Object.entries(log.details)
-                        .filter(([key, val]) => !key.endsWith('_id') && key !== 'id' && val !== null && val !== '')
-                        .map(([key, val]) => (
+                      {Object.entries(log.details).map(([key, val]) => {
+                        const line = formatAuditDetail(key, val);
+                        return line ? (
                           <div key={key}>
-                            <span style={{ fontWeight: 600 }}>{formatDetailKey(key)}:</span> {formatDetailValue(val)}
+                            <span style={{ fontWeight: 600 }}>{line.label}:</span> {line.value}
                           </div>
-                        ))}
+                        ) : null;
+                      })}
                     </div>
                   )}
                 </div>

@@ -105,13 +105,26 @@ describe('full lifecycle', () => {
       'StatusUpdated',
       'StudentConfirmed',
     ]);
-    expect(store.notifications.map((n) => n.type)).toEqual([
-      'ComplaintCreated',
-      'StatusUpdated',
-      'MaintenanceStarted',
-      'ResolutionPendingConfirmation',
-      'ComplaintClosed',
+    expect(store.notifications.map((n) => `${n.user_id}:${n.type}`)).toEqual([
+      'u-supervisor-01:ComplaintCreated',
+      'u-student-01:StatusUpdated', // reviewed
+      'role:Maintenance Office:StatusUpdated', // forwarded
+      'u-student-01:StatusUpdated', // forwarded
+      'u-student-01:MaintenanceStarted',
+      'u-student-01:ResolutionPendingConfirmation',
+      'u-supervisor-01:ComplaintClosed',
+      'role:Maintenance Office:ComplaintClosed',
     ]);
+  });
+
+  it('notifies the student on every status change they did not make', async () => {
+    const c = await seedOpen();
+    await supervisorReview(c.id, review, supervisor);
+    await forwardToMaintenance(c.id, supervisor);
+    await updateProgress(c.id, null, maintenance);
+    await resolveComplaint(c.id, 'done', maintenance);
+    const toStudent = store.notifications.filter((n) => n.user_id === student.id);
+    expect(toStudent).toHaveLength(4);
   });
 
   it('reopen goes back through review', async () => {
@@ -124,6 +137,36 @@ describe('full lifecycle', () => {
     expect((await reopenComplaint(c.id, 'still leaking', student)).status).toBe('Reopened');
     expect((await supervisorReview(c.id, review, supervisor)).status).toBe('UnderReview');
     expect(store.audit.at(-2)?.action).toBe('StudentReopened');
+  });
+
+  it('lets the supervisor adjust the triage again before forwarding', async () => {
+    const c = await seedOpen();
+    await supervisorReview(c.id, { ...review, priority: 'Critical', override: true }, supervisor);
+    const again = await supervisorReview(
+      c.id,
+      { category: 'Furniture', priority: 'Low', department: 'Maintenance', override: true },
+      supervisor
+    );
+    expect(again.status).toBe('UnderReview');
+    expect(again.overridden_category).toBe('Furniture');
+    expect(again.overridden_department).toBe('Maintenance');
+    // The second review records what changed relative to the first.
+    expect(store.audit.at(-1)?.details.changes).toEqual({
+      category: { from: 'Plumbing', to: 'Furniture' },
+      priority: { from: 'Critical', to: 'Low' },
+      department: { from: 'Plumbing', to: 'Maintenance' },
+    });
+    // Only the first review changed the student's status, so only it notifies them.
+    expect(store.notifications.filter((n) => n.user_id === student.id)).toHaveLength(1);
+    expect((await forwardToMaintenance(c.id, supervisor)).status).toBe('Forwarded');
+  });
+
+  it('records the change from the suggestion when the supervisor overrides', async () => {
+    const c = await seedOpen();
+    await supervisorReview(c.id, { ...review, department: 'Maintenance', override: true }, supervisor);
+    expect(store.audit.at(-1)?.details.changes).toEqual({
+      department: { from: 'Plumbing', to: 'Maintenance' },
+    });
   });
 
   it('records an override distinctly', async () => {

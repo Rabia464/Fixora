@@ -27,7 +27,8 @@ after `npm ci`.
 | `npm test` / `npm run test:watch` | Vitest |
 | `npm run test:coverage` | Vitest with a coverage report and thresholds |
 | `npm run lint` / `npm run typecheck` | ESLint / `tsc --noEmit` |
-| `npm run seed` | Seed Firestore (`--reset` wipes sample data first) |
+| `npm run seed` | Seed Firestore with 6 demo users and 20 sample complaints (`--reset` wipes sample data first) |
+| `npm run eval:triage` | Measure the triage rules on `evaluation/triage-sample.json`; writes `evaluation/triage-report.md` |
 
 ## Layout
 

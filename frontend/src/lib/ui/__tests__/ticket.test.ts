@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Complaint } from '../../api/complaints';
 import {
   byStudentAttention,
+  formatAuditDetail,
   byUrgency,
   progressStepIndex,
   statusLabel,
@@ -79,5 +80,32 @@ describe('timeAgo', () => {
 
   it('returns an empty string for invalid dates', () => {
     expect(timeAgo('not a date', now)).toBe('');
+  });
+});
+
+describe('formatAuditDetail', () => {
+  it('hides ids, empty values and an empty change set', () => {
+    expect(formatAuditDetail('complaint_id', 'x')).toBeNull();
+    expect(formatAuditDetail('note', null)).toBeNull();
+    expect(formatAuditDetail('note', '')).toBeNull();
+    expect(formatAuditDetail('changes', {})).toBeNull();
+  });
+
+  it('spells out what the supervisor changed', () => {
+    expect(
+      formatAuditDetail('changes', {
+        category: { from: 'Plumbing', to: 'Furniture' },
+        priority: { from: 'High', to: 'Low' },
+      })
+    ).toEqual({ label: 'Changed', value: 'Category: Plumbing → Furniture; Priority: High → Low' });
+  });
+
+  it('uses readable status names and Yes/No', () => {
+    expect(formatAuditDetail('new_status', 'Forwarded')).toEqual({ label: 'New status', value: 'Sent to maintenance' });
+    expect(formatAuditDetail('override', true)).toEqual({ label: 'Override', value: 'Yes' });
+    expect(formatAuditDetail('resolution_note', 'Replaced washer')).toEqual({
+      label: 'Resolution note',
+      value: 'Replaced washer',
+    });
   });
 });

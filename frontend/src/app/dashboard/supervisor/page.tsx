@@ -9,7 +9,13 @@ import { SkeletonCard } from '../../../components/SkeletonCard';
 import { FileWarning, Sparkles, MapPin, ArrowRight, ShieldCheck, Search, Filter, LayoutGrid, BarChart2, Edit3, Clock } from 'lucide-react';
 import { LoadError } from '../../../components/LoadError';
 import { Complaint, ComplaintPriority, complaintsApi } from '../../../lib/api/complaints';
-import { CATEGORIES, departmentFor } from '../../../lib/domain/complaint';
+import {
+  CATEGORIES,
+  COMPLAINT_STATUSES,
+  DEPARTMENTS,
+  departmentFor,
+  effectiveDepartment,
+} from '../../../lib/domain/complaint';
 import { useAuthStore } from '../../../stores/auth-store';
 import { useToast } from '../../../hooks/useToast';
 import { useAsyncData } from '../../../hooks/useAsyncData';
@@ -36,6 +42,7 @@ export default function SupervisorDashboard() {
   const [editingTicketId, setEditingTicketId] = useState<string | null>(null);
   const [overrideCategory, setOverrideCategory] = useState('');
   const [overridePriority, setOverridePriority] = useState<ComplaintPriority>('High');
+  const [overrideDepartment, setOverrideDepartment] = useState('');
   const user = useAuthStore(state => state.user);
   const { toasts, addToast, dismissToast } = useToast();
 
@@ -46,13 +53,14 @@ export default function SupervisorDashboard() {
     e.stopPropagation();
     setActionInProgress(ticket.id);
     try {
-      // If still Open or Reopened, first review it so it is UnderReview
+      // Still Open or Reopened: accepting the triage as shown is the review
+      // step (-> UnderReview). If the supervisor already adjusted it, keep that.
       if (ticket.status === 'Open' || ticket.status === 'Reopened') {
         await complaintsApi.supervisorReview(ticket.id, {
-          category: ticket.ai_category || 'General',
-          priority: ticket.ai_priority || 'High',
-          department: ticket.ai_department || 'Maintenance',
-          override: false,
+          category: effectiveCategory(ticket),
+          priority: effectivePriority(ticket),
+          department: effectiveDepartment(ticket),
+          override: ticket.supervisor_override,
         });
       }
       
@@ -69,13 +77,19 @@ export default function SupervisorDashboard() {
   const handleSaveOverride = async (ticket: Complaint, e: React.MouseEvent) => {
     e.stopPropagation();
     setActionInProgress(ticket.id);
-    const category = overrideCategory || ticket.ai_category || 'General';
+    const category = overrideCategory || effectiveCategory(ticket);
+    const department = overrideDepartment || departmentFor(category);
+    // An override means the supervisor's triage differs from the system's suggestion.
+    const override =
+      category !== (ticket.ai_category || 'General') ||
+      overridePriority !== (ticket.ai_priority || 'Medium') ||
+      department !== (ticket.ai_department || departmentFor(ticket.ai_category || 'General'));
     try {
       await complaintsApi.supervisorReview(ticket.id, {
         category,
         priority: overridePriority,
-        department: departmentFor(category),
-        override: true,
+        department,
+        override,
       });
       addToast(`Updated AI recommendations for "${ticket.title}"!`, 'info');
       setEditingTicketId(null);
@@ -104,9 +118,11 @@ export default function SupervisorDashboard() {
 
   // Calculate stats for Analytics view
   const categoryCounts: Record<string, number> = {};
+  const statusCounts: Record<string, number> = {};
   tickets.forEach(t => {
-    const cat = t.overridden_category || t.ai_category || 'General';
+    const cat = effectiveCategory(t);
     categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+    statusCounts[t.status] = (statusCounts[t.status] || 0) + 1;
   });
 
   return (
@@ -196,6 +212,7 @@ export default function SupervisorDashboard() {
               const isEditing = editingTicketId === ticket.id;
               const category = effectiveCategory(ticket);
               const priority = effectivePriority(ticket);
+              const department = effectiveDepartment(ticket);
               const openTicket = () => setSelectedTicket(ticket);
 
               return (
@@ -226,7 +243,7 @@ export default function SupervisorDashboard() {
                   {/* AI Recommendation & Override Box */}
                   <div className={styles.aiPredictionBox}>
                     <div className={styles.aiPredictionHeader}>
-                      <Sparkles size={14} /> Suggested category &amp; priority
+                      <Sparkles size={14} /> Suggested category, priority &amp; department
                     </div>
 
                     {!isEditing ? (
@@ -236,6 +253,7 @@ export default function SupervisorDashboard() {
                           <Badge status={priorityTone(priority)}>
                             Priority: {priority}
                           </Badge>
+                          <Badge status="purple">Department: {department}</Badge>
                           {ticket.supervisor_override && (
                             <Badge status="neutral">Adjusted by supervisor</Badge>
                           )}
@@ -247,7 +265,11 @@ export default function SupervisorDashboard() {
                           <select 
                             aria-label="Category"
                             value={overrideCategory || category} 
-                            onChange={e => setOverrideCategory(e.target.value)}
+                            onChange={e => {
+                              setOverrideCategory(e.target.value);
+                              // Default the department to the one that handles this category.
+                              setOverrideDepartment(departmentFor(e.target.value));
+                            }}
                             style={{ flex: 1, padding: '6px 8px', borderRadius: '6px', fontSize: '12px' }}
                           >
                             {categories.filter(c => c !== 'All').map(c => (
@@ -266,6 +288,16 @@ export default function SupervisorDashboard() {
                             <option value="Critical">Critical</option>
                           </select>
                         </div>
+                        <select
+                          aria-label="Department"
+                          value={overrideDepartment || department}
+                          onChange={e => setOverrideDepartment(e.target.value)}
+                          style={{ padding: '6px 8px', borderRadius: '6px', fontSize: '12px' }}
+                        >
+                          {DEPARTMENTS.map(d => (
+                            <option key={d} value={d}>{d}</option>
+                          ))}
+                        </select>
                         <div style={{ display: 'flex', gap: '6px' }}>
                           <BubblyButton variant="primary" onClick={(e) => handleSaveOverride(ticket, e)} disabled={actionInProgress === ticket.id}>
                             Save Changes
@@ -286,6 +318,7 @@ export default function SupervisorDashboard() {
                           e.stopPropagation();
                           setOverrideCategory(category);
                           setOverridePriority(priority as ComplaintPriority);
+                          setOverrideDepartment(department);
                           setEditingTicketId(ticket.id);
                         }}
                       >
@@ -334,21 +367,16 @@ export default function SupervisorDashboard() {
           <GlassCard accent="purple" className={styles.chartCard}>
             <h3 style={{ fontSize: '18px', fontWeight: 800 }}>Hostel Status Overview</h3>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
-                <span style={{ fontWeight: 700 }}>Open / Pending Review</span>
-                <Badge status="warning">{pendingTickets.length} Tickets</Badge>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
-                <span style={{ fontWeight: 700 }}>In Progress at Maintenance</span>
-                <Badge status="info">{tickets.filter(t => t.status === 'Forwarded' || t.status === 'InProgress').length} Active</Badge>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
-                <span style={{ fontWeight: 700 }}>Resolved & Closed</span>
-                <Badge status="success">{tickets.filter(t => t.status === 'Resolved' || t.status === 'Closed').length} Completed</Badge>
-              </div>
+            <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+              {tickets.length} complaint{tickets.length === 1 ? '' : 's'} in total
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
+              {COMPLAINT_STATUSES.map(status => (
+                <div key={status} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
+                  <span style={{ fontWeight: 700 }}>{statusLabel(status, 'Hostel Supervisor')}</span>
+                  <Badge status={statusTone(status)}>{statusCounts[status] || 0}</Badge>
+                </div>
+              ))}
             </div>
           </GlassCard>
         </div>

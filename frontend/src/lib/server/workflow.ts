@@ -5,6 +5,9 @@
  *
  *   Open -> UnderReview -> Forwarded -> InProgress -> Resolved -> Closed
  *                                                        \-> Reopened -> UnderReview ...
+ *
+ * A supervisor may review an UnderReview complaint again (UnderReview ->
+ * UnderReview) to change the triage before forwarding it.
  */
 
 import type { ComplaintStatus, RoleName } from '../domain/complaint';
@@ -52,10 +55,10 @@ interface TransitionRule {
 
 export const TRANSITIONS: Record<WorkflowAction, TransitionRule> = {
   review: {
-    from: ['Open', 'Reopened'],
+    from: ['Open', 'Reopened', 'UnderReview'],
     to: 'UnderReview',
     role: 'Hostel Supervisor',
-    message: 'Complaint must be in Open or Reopened status to review.',
+    message: 'Complaint must be in Open, Reopened or Under Review status to review.',
   },
   forward: {
     from: ['UnderReview'],

@@ -127,3 +127,30 @@ export function clickableCardProps(onActivate: () => void, label: string) {
     },
   };
 }
+
+const isStatusCode = (v: unknown): v is ComplaintStatus =>
+  typeof v === 'string' && v in STATUS_LABELS;
+
+/**
+ * Turns one entry of an audit log's `details` into a readable line, or null
+ * when it shouldn't be shown (ids, empty values, an empty change set).
+ * `changes` ({ field: { from, to } }) becomes "Category: Plumbing → Electrical".
+ */
+export function formatAuditDetail(key: string, val: unknown): { label: string; value: string } | null {
+  if (key === 'id' || key.endsWith('_id') || val === null || val === undefined || val === '') return null;
+  const label = key.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase());
+
+  if (key === 'changes') {
+    if (!val || typeof val !== 'object') return null;
+    const parts = Object.entries(val as Record<string, { from?: unknown; to?: unknown }>)
+      .filter(([, c]) => c && typeof c === 'object')
+      .map(([field, c]) => `${field.replace(/^./, (x) => x.toUpperCase())}: ${String(c.from)} → ${String(c.to)}`);
+    return parts.length ? { label: 'Changed', value: parts.join('; ') } : null;
+  }
+  if (typeof val === 'boolean') return { label, value: val ? 'Yes' : 'No' };
+  if ((key === 'previous_status' || key === 'new_status') && isStatusCode(val)) {
+    return { label, value: STATUS_LABELS[val] };
+  }
+  if (typeof val === 'object') return { label, value: JSON.stringify(val) };
+  return { label, value: String(val) };
+}

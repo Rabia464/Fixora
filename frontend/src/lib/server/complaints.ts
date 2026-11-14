@@ -25,7 +25,7 @@ import {
   WorkflowAction,
 } from './workflow';
 import { classifyComplaint } from '../ai/classifier';
-import { effectiveDepartment } from '../domain/complaint';
+import { effectiveCategory, effectiveDepartment, effectivePriority } from '../domain/complaint';
 
 /**
  * Complaint lifecycle service — the Firestore counterpart of
@@ -115,7 +115,12 @@ async function transition(
     return { ...apply(complaint, nextStatus), status: nextStatus, updated_at: now() };
   });
   if (!result) throw notFound();
-  return { updated: result.after, previous: result.before.status, nextStatus: result.after.status };
+  return {
+    updated: result.after,
+    before: result.before,
+    previous: result.before.status,
+    nextStatus: result.after.status,
+  };
 }
 
 // ----------------------------------------------------------------- reads
@@ -241,7 +246,7 @@ export async function supervisorReview(
   const { category, department, priority } = input;
   const override = input.override === true;
 
-  const { updated, nextStatus, previous } = await transition('review', id, user, (complaint) => {
+  const { updated, before, nextStatus, previous } = await transition('review', id, user, (complaint) => {
     assertSupervisorScope(complaint, user);
     if (!isCategory(category)) throw badRequest('category is not a recognised complaint category.');
     if (!isDepartment(department)) throw badRequest('department is not a recognised department.');
@@ -255,6 +260,21 @@ export async function supervisorReview(
       supervisor_id: user.id,
     };
   });
+
+  // What the triage was before this review: the supervisor's earlier choice,
+  // or the system's suggestion on a first review. Recorded so the timeline
+  // shows exactly what the supervisor changed.
+  const prior = {
+    category: effectiveCategory(before),
+    priority: effectivePriority(before),
+    department: effectiveDepartment(before),
+  };
+  const changes: Record<string, { from: string; to: string }> = {};
+  for (const field of ['category', 'priority', 'department'] as const) {
+    const to = String(input[field]);
+    if (prior[field] !== to) changes[field] = { from: prior[field], to };
+  }
+
   await audit(
     override ? AuditAction.SUPERVISOR_OVERRIDE : AuditAction.SUPERVISOR_REVIEWED,
     user,
@@ -264,10 +284,22 @@ export async function supervisorReview(
       priority: updated.overridden_priority,
       department: updated.overridden_department,
       override,
+      changes,
       previous_status: previous,
       new_status: nextStatus,
     }
   );
+
+  // The student hears about the move into review; a re-review that only
+  // adjusts the triage doesn't change their status, so it isn't announced.
+  if (previous !== nextStatus) {
+    await addNotification({
+      user_id: updated.created_by,
+      complaint_id: updated.id,
+      type: NotificationType.STATUS_UPDATED,
+      payload: { complaint_id: updated.id, title: updated.title, status: nextStatus },
+    });
+  }
   return updated;
 }
 
@@ -281,10 +313,24 @@ export async function forwardToMaintenance(id: string, user: UserDoc): Promise<C
     new_status: nextStatus,
     destination_department: effectiveDepartment(updated),
   });
+  const payload = {
+    complaint_id: updated.id,
+    title: updated.title,
+    status: nextStatus,
+    priority: effectivePriority(updated),
+    department: effectiveDepartment(updated),
+    location: updated.location,
+  };
   await notifyRole('Maintenance Office', {
     complaint_id: updated.id,
     type: NotificationType.STATUS_UPDATED,
-    payload: { complaint_id: updated.id, title: updated.title, status: nextStatus },
+    payload,
+  });
+  await addNotification({
+    user_id: updated.created_by,
+    complaint_id: updated.id,
+    type: NotificationType.STATUS_UPDATED,
+    payload,
   });
   return updated;
 }
@@ -355,6 +401,11 @@ export async function confirmResolution(id: string, user: UserDoc): Promise<Comp
       payload: { complaint_id: updated.id, title: updated.title, status: nextStatus },
     });
   }
+  await notifyRole('Maintenance Office', {
+    complaint_id: updated.id,
+    type: NotificationType.COMPLAINT_CLOSED,
+    payload: { complaint_id: updated.id, title: updated.title, status: nextStatus },
+  });
   return updated;
 }
 
