@@ -23,4 +23,4 @@ alembic>=1.14.0                    # Schema migration tool
 python-jose[cryptography]>=3.3.0   # JWT creation and verification (HS256)
 
 # ── Utilities ───────────────────────────────────────────────
-python-dotenv>=1.0.1               # .env file loading (backup for pydantic-settings)
+python-dotenv>=1.2.4               # .env file loading (backup for pydantic-settings)
